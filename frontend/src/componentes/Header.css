@@ -1,0 +1,99 @@
+/* Contenedor principal */
+.header-container {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  border-bottom: 4px solid #b2d135; /* verde institucional */
+}
+
+/* Flex interno */
+.header-content {
+  max-width: 1170px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 130px;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
+/* Logo */
+.header-left .logo {
+  height: 80px;
+}
+
+/* Navegación centrada */
+.header-center {
+  display: flex;
+  gap: 40px;
+  position: relative;
+}
+
+/* Enlaces */
+.nav-link {
+  position: relative;
+  font-size: 1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: #666666;
+  text-decoration: none;
+  padding: 8px 0;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: #00ade5;
+}
+
+/* Indicador activo */
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #00ade5;
+  border-radius: 2px;
+}
+
+/* Barra superior */
+.top-bar {
+  background-color: #00ade5;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Contenido de la barra superior */
+.top-bar-content {
+  max-width: 1140px;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
+/* Íconos sociales */
+.social-icons {
+  display: flex;
+  gap: 24px;
+}
+
+.social-icon img.icon-img {
+  width: 22px;
+  height: 22px;
+  filter: brightness(0) invert(1);
+  transition: transform 0.2s;
+}
+
+.social-icon:hover img.icon-img {
+  transform: scale(1.2);
+}

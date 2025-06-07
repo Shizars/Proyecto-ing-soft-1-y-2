@@ -1,0 +1,41 @@
+.footer-container {
+  background-color: #f2f2f2;
+  border-top: 1px solid #ccc;
+  font-family: Georgia, Helvetica, Arial, sans-serif;
+  color: rgb(102, 102, 102);
+  padding: 20px 0;
+  width: 100%;
+}
+
+.footer-content {
+  width: 1170px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 15px;
+}
+
+.footer-left {
+  text-align: left;
+  font-size: 0.875rem; /* equivalente aprox a 16px con tu base de 18px */
+}
+
+.footer-right {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(35%) sepia(9%) saturate(1200%) hue-rotate(180deg) brightness(95%) contrast(85%);
+  transition: transform 0.2s ease;
+}
+
+.footer-icon:hover {
+  transform: scale(1.1);
+}
+
