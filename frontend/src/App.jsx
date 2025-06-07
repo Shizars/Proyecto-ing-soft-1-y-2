@@ -4,15 +4,16 @@ import Footer from "./componentes/Footer";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-
+import AboutPage from "./pages/AboutPage";
 function App() {
   return (
     <Router>
       <div className="App">
         <Header />
         <Routes>
+          <Route path="/Proyecto" element={<AboutPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/registro" element={<RegisterPage />} />
+          <Route path="/" element={<RegisterPage />} />
         </Routes>
         <Footer />
       </div>

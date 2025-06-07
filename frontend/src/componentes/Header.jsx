@@ -20,7 +20,6 @@ function Header() {
                 className="icon-img"
               />
             </a>
-
             <a
               href="https://web.facebook.com/fciudaddelninocl?_rdc=1&_rdr#"
               target="_blank"
@@ -33,7 +32,6 @@ function Header() {
                 className="icon-img"
               />
             </a>
-
             <a
               href="https://x.com/ciudaddelninocl"
               className="social-icon"
@@ -42,11 +40,10 @@ function Header() {
             >
               <img
                 src={require("../img/twitter.png")}
-                alt="x"
+                alt="Twitter"
                 className="icon-img"
               />
             </a>
-
             <a
               href="https://www.instagram.com/fundacionciudaddelnino/?hl=es-la"
               className="social-icon"
@@ -62,21 +59,27 @@ function Header() {
           </div>
         </div>
       </div>
+
       <header className="header-container">
         <div className="header-content">
           {/* Logo */}
           <div className="header-left">
-            <img
-              src={require("../img/logo_cdn_2019.png")}
-              alt="Logo Fundación"
-              className="logo"
-            />
+            <a href="/">
+              <img
+                src={require("../img/logo_cdn_2019.png")}
+                alt="Logo Fundación"
+                className="logo"
+              />
+            </a>
           </div>
 
           {/* Navegación */}
           <nav className="header-center">
             <a href="/" className="nav-link">
-              PROYECTO
+              Inicio
+            </a>
+            <a href="/proyecto" className="nav-link">
+              Proyecto
             </a>
             <a
               href="https://www.ciudaddelnino.cl/"
@@ -84,12 +87,12 @@ function Header() {
               rel="noopener noreferrer"
               className="nav-link"
             >
-              PÁGINA DE LA FUNDACIÓN
+              Página de la fundación
             </a>
           </nav>
+
+          <div className="header-right" />
         </div>
-        {/* Espacio vacío a la derecha (las redes van arriba ahora) */}
-        <div className="header-right"></div>
       </header>
     </>
   );

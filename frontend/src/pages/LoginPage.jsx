@@ -73,7 +73,7 @@ export default function LoginPage() {
         </Formik>
 
         <p className="auth-nav">
-          ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
+          ¿No tienes cuenta? <Link to="/">Regístrate</Link>
         </p>
       </div>
     </div>
