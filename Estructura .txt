@@ -1,0 +1,69 @@
+PROYECTO-ING-SOFT-1-Y-2/
+│
+├── backend/                           # Flask + SQLAlchemy
+│   ├── app.py                         # entrypoint Flask
+│   ├── config.py                      # configuración (BD, JWT…)
+│   ├── requirements.txt               # dependencias Python
+│   │
+│   ├── models/                        # clases de base de datos
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   └── document.py
+│   │
+│   ├── routes/                        # Blueprints / controladores REST
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── users.py
+│   │   └── documents.py
+│   │
+│   ├── services/                      # lógica de negocio (opcional)
+│   │   └── document_service.py
+│   │
+│   ├── schemas/                       # validación Marshmallow
+│   │   └── user_schema.py
+│   │
+│   ├── migrations/                    # generadas por Alembic/Flask-Migrate
+│   └── tests/                         # pytest (unit + integration)
+│
+├── frontend/                          # React + Formik/Yup
+│   ├── public/
+│   │   ├── index.html
+│   │   └── icons/                     # svg/png redes sociales
+│   │
+│   └── src/
+│       ├── components/                # presentational (Header, Footer…)
+│       │   ├── Header.jsx / Header.css
+│       │   ├── Footer.jsx / Footer.css
+│       │   └── …                      # otros reutilizables
+│       │
+│       ├── pages/                     # páginas/rutas (Login, Registro…)
+│       │   ├── LoginPage.jsx / .css
+│       │   ├── RegisterPage.jsx / .css
+│       │   └── DashboardPage.jsx      # futura página principal
+│       │
+│       ├── hooks/                     # custom hooks (useAuth, useFetch…)
+│       │   └── useAuth.jsx
+│       │
+│       ├── services/                  # llamadas Axios centralizadas
+│       │   └── api.js
+│       │
+│       ├── styles/                    # global CSS variables, reset
+│       │   └── _variables.css
+│       │
+│       ├── img/                       # logos y banners
+│       │   └── logo_cdn_2019.png
+│       │
+│       ├── App.jsx
+│       ├── index.jsx
+│       └── index.css
+│
+├── database/                          # scripts SQL manuales (opcional)
+│   └── init.sql
+│
+├── docs/                              # diagramas UML, PDF del informe
+│   ├── arquitectura_layers.drawio
+│   └── secuencia_login.png
+│
+├── .gitignore
+├── README.md
+└── docker-compose.yml                 # (opcional) React + Flask + Postgres
