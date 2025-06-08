@@ -13,7 +13,7 @@ def create_app(config_class=Config):
     ma.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
-    cors(app, resources={r"/api/*": {"origins": "*"}})
+    cors(app, resources={r"/api/*": {"origins": ["http://localhost:3000"]}})
 
     # blueprints
     for bp in all_blueprints:

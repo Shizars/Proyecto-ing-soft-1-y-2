@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { useAuth } from "../hooks/useAuth";
 import "./LoginPage.css";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [apiError, setApiError] = useState("");
 
   const schema = Yup.object({
     email: Yup.string().email("Email inválido").required("Requerido"),
@@ -30,18 +33,28 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* Panel derecho: el formulario ya forma parte de la página */}
+      {/* Panel derecho */}
       <div className="login-right">
         <h2>Iniciar Sesión</h2>
+
         <Formik
           initialValues={{ email: "", password: "" }}
           validationSchema={schema}
-          onSubmit={(values) => {
-            console.log("Login values:", values);
-            navigate("/");
+          onSubmit={async (values, { setSubmitting }) => {
+            setApiError("");
+            try {
+              await login(values.email, values.password); // llama al backend
+              navigate("/"); // redirige al home
+            } catch (err) {
+              setApiError(
+                err.response?.data?.error || "Credenciales inválidas"
+              );
+            } finally {
+              setSubmitting(false);
+            }
           }}
         >
-          {() => (
+          {({ isSubmitting }) => (
             <Form className="auth-form">
               <div className="field-group">
                 <Field
@@ -65,7 +78,9 @@ export default function LoginPage() {
                 />
               </div>
 
-              <button type="submit" className="btn">
+              {apiError && <span className="error">{apiError}</span>}
+
+              <button type="submit" className="btn" disabled={isSubmitting}>
                 Entrar
               </button>
             </Form>
@@ -73,7 +88,7 @@ export default function LoginPage() {
         </Formik>
 
         <p className="auth-nav">
-          ¿No tienes cuenta? <Link to="/">Regístrate</Link>
+          ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
         </p>
       </div>
     </div>

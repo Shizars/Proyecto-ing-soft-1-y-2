@@ -1,13 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import api from "../services/api";
 import "./RegisterPage.css";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const [apiError, setApiError] = useState("");
 
-  // Esquema de validación Yup
   const schema = Yup.object({
     name: Yup.string().required("Requerido"),
     email: Yup.string().email("Email inválido").required("Requerido"),
@@ -35,28 +36,39 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      {/* Panel derecho: formulario */}
+      {/* Panel derecho */}
       <div className="register-right">
         <h2>Crear Cuenta</h2>
 
         <Formik
           initialValues={{ name: "", email: "", password: "", confirm: "" }}
           validationSchema={schema}
-          onSubmit={(values) => {
-            console.log("Register values:", values);
-            // TODO: llamar a la API Flask y manejar respuesta
-            navigate("/login");
+          onSubmit={async (values, { setSubmitting }) => {
+            setApiError("");
+            try {
+              await api.post("/auth/register", {
+                nombre_usuario: values.name,
+                email: values.email,
+                password: values.password,
+              });
+              navigate("/login");
+            } catch (err) {
+              setApiError(
+                err.response?.data?.error ||
+                  "No se pudo crear la cuenta. Intenta de nuevo."
+              );
+            } finally {
+              setSubmitting(false);
+            }
           }}
         >
-          {() => (
+          {({ isSubmitting }) => (
             <Form className="auth-form">
-              {/* Nombre */}
               <div className="field-group">
                 <Field name="name" type="text" placeholder="Nombre completo" />
                 <ErrorMessage component="span" name="name" className="error" />
               </div>
 
-              {/* Email */}
               <div className="field-group">
                 <Field
                   name="email"
@@ -66,7 +78,6 @@ export default function RegisterPage() {
                 <ErrorMessage component="span" name="email" className="error" />
               </div>
 
-              {/* Contraseña */}
               <div className="field-group">
                 <Field
                   name="password"
@@ -80,7 +91,6 @@ export default function RegisterPage() {
                 />
               </div>
 
-              {/* Confirmar contraseña */}
               <div className="field-group">
                 <Field
                   name="confirm"
@@ -94,7 +104,9 @@ export default function RegisterPage() {
                 />
               </div>
 
-              <button type="submit" className="btn">
+              {apiError && <span className="error">{apiError}</span>}
+
+              <button type="submit" className="btn" disabled={isSubmitting}>
                 Crear Cuenta
               </button>
             </Form>
