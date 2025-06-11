@@ -4,6 +4,9 @@ from backend.config import Config
 from backend.extensions import db, ma, jwt, migrate, cors
 from backend.routes import all_blueprints
 
+from dotenv import load_dotenv
+load_dotenv()  # lee el .env
+
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -22,6 +25,9 @@ def create_app(config_class=Config):
     # Registrar blueprints
     for bp in all_blueprints:
         app.register_blueprint(bp)
+        # Mostrar todas las rutas registradas (solo para debug)
+    for rule in app.url_map.iter_rules():
+        print(rule)
 
     return app
 

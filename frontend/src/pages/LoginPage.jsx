@@ -90,6 +90,10 @@ export default function LoginPage() {
 
         <p className="auth-nav">
           ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
+          <br />
+          <Link to="/forgot-password" className="forgot-link">
+            ¿Olvidaste tu contraseña?
+          </Link>
         </p>
       </div>
     </div>

@@ -116,7 +116,7 @@ export default function DashboardPage() {
       <main className="content">
         {/* Header simulado de sesión iniciada */}
         <div className="dashboard-header">
-          <h2>Bienvenido, {userName}</h2>
+          <h2>Bienvenido/a, {userName}</h2>
           <p>
             Bienvenido al sistema de gestión documental de la Fundación Cuidad
             Del Niño.

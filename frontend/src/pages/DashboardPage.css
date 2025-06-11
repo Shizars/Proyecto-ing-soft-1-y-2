@@ -6,17 +6,24 @@
   background: #f0f2f5;
 }
 
+
 .sidebar {
   width: 60px;
   background: linear-gradient(135deg, #909c8f 0%, #1d5063 100%);
   color: #ecf0f1;
-  transition: width 0.3s ease;
   overflow: hidden;
   box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  transform-origin: left;
+  transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+              transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .sidebar.open {
   width: 200px;
+  transform: scaleX(1);
+}
+.sidebar:not(.open) {
+  transform: scaleX(0.9) translateX(-10px);
 }
 
 .toggle-btn {

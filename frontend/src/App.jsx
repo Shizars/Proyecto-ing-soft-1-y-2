@@ -7,6 +7,8 @@ import RegisterPage from "./pages/RegisterPage";
 import AboutPage from "./pages/AboutPage";
 import DashboardPage from "./pages/DashboardPage"; // ejemplo de ruta privada
 import PrivateRoute from "./componentes/PrivateRoute"; // el wrapper que creaste
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
 function App() {
   return (
@@ -19,7 +21,11 @@ function App() {
           <Route path="/registro" element={<RegisterPage />} />
           <Route path="/" element={<LoginPage />} />
           <Route path="/proyecto" element={<AboutPage />} />
-
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route
+            path="/reset-password/:token"
+            element={<ResetPasswordPage />}
+          />
           {/* Privadas */}
           <Route
             path="/dashboard"
