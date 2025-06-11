@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AboutPage from "./pages/AboutPage";
-import Dashboard from "./pages/Dashboard"; // ejemplo de ruta privada
+import DashboardPage from "./pages/DashboardPage"; // ejemplo de ruta privada
 import PrivateRoute from "./componentes/PrivateRoute"; // el wrapper que creaste
 
 function App() {
@@ -16,8 +16,8 @@ function App() {
 
         <Routes>
           {/* Públicas */}
-          <Route path="/" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/registro" element={<RegisterPage />} />
+          <Route path="/" element={<LoginPage />} />
           <Route path="/proyecto" element={<AboutPage />} />
 
           {/* Privadas */}
@@ -25,7 +25,7 @@ function App() {
             path="/dashboard"
             element={
               <PrivateRoute>
-                <Dashboard />
+                <DashboardPage />
               </PrivateRoute>
             }
           />

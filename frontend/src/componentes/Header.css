@@ -1,66 +1,62 @@
-/* Barra superior */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap");
+
+/* Top bar redes */
 .top-bar {
-  background-color: #00ade5;
-  height: 36px;
+  background: #00ade5;
+  height: 34px;
   display: flex;
+  justify-content: center;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .top-bar-content {
-  max-width: 1170px;
+  max-width: 1240px;
   width: 100%;
-  margin: 0 auto;
   display: flex;
   justify-content: flex-end;
-  align-items: center;
-  padding: 0 20px;
-  box-sizing: border-box;
+  padding: 0 24px;
 }
 
 .social-icons {
   display: flex;
-  gap: 16px;
+  gap: 18px;
 }
 
 .icon-img {
   width: 20px;
-  height: 20px;
-  filter: brightness(0) invert(1);
   transition: transform 0.2s;
+  filter: invert(1);          /* queda blanco sobre celeste */
 }
 
 .social-icon:hover .icon-img {
-  transform: scale(1.2);
+  transform: scale(1.25);
 }
 
-/* Contenedor principal */
+/* ===== Header principal ===== */
 .header-container {
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  border-bottom: 4px solid #b2d135;
-  font-family:  'Times New Roman', Times, serif,sans-serif;
+  background: #fff;
+  border-bottom: 5px solid #b2d135;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-family: "Poppins", sans-serif;
 }
 
-/* Flex interno */
 .header-content {
-  max-width: 1170px;
+  max-width: 1240px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 120px;
-  padding: 0 20px;
-  box-sizing: border-box;
+  height: 100px;
+  padding: 0 24px;
 }
 
 /* Logo */
 .logo {
-  height: 70px;
-  transition: transform 0.2s;
+  height: 64px;
+  transition: transform 0.15s;
 }
 
 .header-left a:hover .logo {
@@ -70,35 +66,39 @@
 /* Navegación */
 .header-center {
   display: flex;
-  gap: 48px;
+  gap: 40px;
 }
 
 .nav-link {
+  position: relative;
+  padding: 10px 0;
   font-size: 0.95rem;
   font-weight: 600;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: #0077a3;
+  color: #006c95;
   text-decoration: none;
-  padding: 10px 0;
-  position: relative;
-  transition: color 0.2s, background-color 0.2s;
+  transition: color 0.2s;
+}
+
+/* subrayado animado */
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 3px;
+  background: #00ade5;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
 }
 
 .nav-link:hover {
   color: #00ade5;
-  background-color: rgba(0, 173, 229, 0.1);
-  border-radius: 4px;
-  padding: 10px 8px;
 }
 
-/* Indicador activo (opcional si usas .active) */
-.nav-link.active::after {
-  content: "";
-  position: absolute;
-  bottom: -6px;
-  left: 10%;
-  width: 80%;
-  height: 3px;
-  background-color: #00ade5;
-  border-radius: 2px;
+.nav-link:hover::after {
+  transform: scaleX(1);
 }

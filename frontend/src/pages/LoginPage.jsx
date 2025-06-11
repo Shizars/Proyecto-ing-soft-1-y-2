@@ -7,6 +7,7 @@ import "./LoginPage.css";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+
   const { login } = useAuth();
   const [apiError, setApiError] = useState("");
 
@@ -44,7 +45,7 @@ export default function LoginPage() {
             setApiError("");
             try {
               await login(values.email, values.password); // llama al backend
-              navigate("/"); // redirige al home
+              navigate("/dashboard"); // redirige al home
             } catch (err) {
               setApiError(
                 err.response?.data?.error || "Credenciales inválidas"

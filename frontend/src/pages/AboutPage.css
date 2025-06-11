@@ -9,14 +9,15 @@
 
 /* Página completa */
 .about-page {
-  font-family: var(--font-body);
+  font-family: "Poppins";
   color: #333;
+  line-height:1,55 ;
 }
 
 /* Hero */
 .hero {
   position: relative;
-  height: 400px;
+  height: 360px;
   background: url('../img/banner_cdn.png') center/cover no-repeat;
   display: flex;
   align-items: center;
@@ -51,15 +52,12 @@
 }
 
 .btn-cta {
-  display: inline-block;
-  padding: 14px 28px;
-  background: var(--color-accent);
-  color: #fff;
-  font-weight: bold;
-  border-radius: 6px;
-  text-decoration: none;
-  transition: background 0.2s, transform 0.1s;
+  padding: 12px 26px;
+  font-size: 0.95rem;
+  border-radius: 50px;
+  text-transform: none;
 }
+
 
 .btn-cta:hover {
   background: #a6c53b;
@@ -153,3 +151,49 @@
   font-size: 1.75rem;
   color: var(--color-primary);
 }
+/* NUEVA sección “Sobre el proyecto” */
+.about-project {
+  background: #ffffff;
+  padding: 60px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.project-box {
+  max-width: 800px;
+  text-align: left;
+}
+
+.project-box ul {
+  margin-top: 12px;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+/* Ajuste de títulos */
+.features h2,
+.project-box h2 {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  color: var(--color-secondary);
+  margin-bottom: 24px;
+}
+
+/* Sección Powered by */
+.powered {
+  background: #f2f2f2;
+  padding: 24px 0;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+}
+
+.pow-icon {
+  font-size: 1.5rem;
+  margin: 0 6px;
+  vertical-align: middle;
+  color: var(--color-primary);
+}
+
+/* (los estilos anteriores quedan tal cual) */
+

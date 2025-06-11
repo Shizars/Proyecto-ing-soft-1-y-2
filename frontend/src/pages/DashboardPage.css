@@ -1,0 +1,224 @@
+/* src/pages/DashboardPage.css */
+.dashboard {
+  display: flex;
+  height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+}
+
+.sidebar {
+  width: 60px;
+  background: linear-gradient(135deg, #909c8f 0%, #1d5063 100%);
+  color: #ecf0f1;
+  transition: width 0.3s ease;
+  overflow: hidden;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.sidebar.open {
+  width: 200px;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.4em;
+  padding: 15px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.menu-items {
+  margin-top: 30px;
+}
+
+.menu-items button {
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 12px 20px;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background 0.2s;
+}
+
+.menu-items button:hover {
+  background: rgba(236, 240, 241, 0.15);
+}
+
+.content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+h1 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.success {
+  background: #168d48;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+.doc-table thead tr th {
+  text-align: left;
+  padding: 12px;
+  background: transparent;
+  color: #7f8c8d;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.doc-table tbody tr {
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.doc-table td {
+  padding: 12px;
+  color: #2c3e50;
+}
+
+.doc-table td button {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.doc-table td button:hover {
+  background: #2980b9;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  width: 420px;
+  max-width: 95%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.modal h2 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.field-group {
+  margin-bottom: 18px;
+  margin-right: 17px;
+  display: flex;
+  flex-direction: column;
+}
+
+.field-group label {
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #34495e;
+}
+
+.field-group input[type="text"],
+.field-group input[type="file"] {
+  padding: 10px;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+.date-group {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modal-actions button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.modal-actions button[type="submit"] {
+  background: #09853c;
+  color: #fff;
+}
+
+.modal-actions button[type="submit"]:hover {
+  opacity: 0.9;
+}
+
+.modal-actions button[type="button"] {
+  background: #c0392b;
+  color: #fff;
+}
+
+.modal-actions button[type="button"]:hover {
+  opacity: 0.9;
+}
+
+.error {
+  color: #e74c3c;
+  font-size: 0.9em;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* src/pages/DashboardPage.css */
+.dashboard-header {
+  background: #ffffff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.dashboard-header h2 {
+  margin: 0;
+  font-size: 1.5em;
+  color: #2c3e50;
+}
+.dashboard-header p {
+  margin: 5px 0 0;
+  color: #5e6d6e;
+}

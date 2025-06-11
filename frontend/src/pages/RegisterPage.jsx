@@ -51,7 +51,7 @@ export default function RegisterPage() {
                 email: values.email,
                 password: values.password,
               });
-              navigate("/login");
+              navigate("/dashboard");
             } catch (err) {
               setApiError(
                 err.response?.data?.error ||
@@ -114,7 +114,7 @@ export default function RegisterPage() {
         </Formik>
 
         <p className="auth-nav">
-          ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+          ¿Ya tienes cuenta? <Link to="/">Inicia sesión</Link>
         </p>
       </div>
     </div>

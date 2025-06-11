@@ -8,6 +8,7 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 @auth_bp.post("/register")
 def register():
+    print("► Registro recibido en servidor:", request.get_json())
     data = request.get_json()
     if User.query.filter_by(email=data["email"]).first():
         return {"error": "Email ya registrado"}, 409
@@ -27,5 +28,5 @@ def login():
     user = User.query.filter_by(email=data["email"]).first()
     if not user or not user.check_password(data["password"]):
         return {"error": "Credenciales inválidas"}, 401
-    token = create_access_token(identity=user.id)
-    return jsonify(token=token, user={"id": user.id, "email": user.email})
+    token = create_access_token(identity=str(user.id))
+    return jsonify(token=token, user={"id": user.id, "email": user.email, "nombre_usuario": user.nombre_usuario})

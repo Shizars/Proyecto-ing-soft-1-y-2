@@ -24,66 +24,82 @@ export default function AboutPage() {
             la Fundación Ciudad del Niño a través de una plataforma moderna,
             colaborativa y confiable.
           </p>
-          <Link to="/" className="btn-cta">
+          <Link to="/registro" className="btn-cta">
             Comienza ahora
           </Link>
         </div>
       </section>
 
-      {/* Separador */}
-      <div className="divider" />
+      {/* Sobre el proyecto */}
+      <section className="about-project">
+        <div className="project-box">
+          <h2>¿En qué consiste?</h2>
+          <p>
+            El sistema centraliza todos los documentos de la Fundación en una
+            única plataforma digital. Permite:
+          </p>
+          <ul>
+            <li>
+              <strong>Acceso seguro</strong> mediante autenticación con roles.
+            </li>
+            <li>
+              <strong>Control de versiones</strong> y trazabilidad de cambios.
+            </li>
+            <li>
+              <strong>Búsqueda</strong> por palabras clave, categoría o fecha.
+            </li>
+            <li>
+              <strong>Reportes</strong> y métricas para el equipo directivo.
+            </li>
+          </ul>
+        </div>
+      </section>
 
       {/* Funcionalidades */}
       <section className="features">
-        <h2>¿Qué puedes hacer?</h2>
+        <h2>Funciones clave</h2>
         <div className="feature-grid">
-          <div className="feature-card">
-            <FaUserShield className="feature-icon" />
-            <h3>Seguridad y Roles</h3>
-            <p>Control de accesos, autenticación y autorización granular.</p>
-          </div>
-          <div className="feature-card">
-            <FaUpload className="feature-icon" />
-            <h3>Subida Inteligente</h3>
-            <p>Clasificación automática y control de versiones.</p>
-          </div>
-          <div className="feature-card">
-            <FaSearch className="feature-icon" />
-            <h3>Búsqueda Avanzada</h3>
-            <p>Filtra por fecha, categoría, etiquetas o contenido.</p>
-          </div>
-          <div className="feature-card">
-            <FaLock className="feature-icon" />
-            <h3>Auditoría</h3>
-            <p>Registro completo de actividad y trazabilidad.</p>
-          </div>
+          <Feature
+            icon={<FaUserShield />}
+            title="Seguridad y Roles"
+            desc="Control de accesos, autenticación y autorización granular."
+          />
+          <Feature
+            icon={<FaUpload />}
+            title="Subida Inteligente"
+            desc="Clasificación automática y control de versiones."
+          />
+          <Feature
+            icon={<FaSearch />}
+            title="Búsqueda Avanzada"
+            desc="Filtra por fecha, categoría, etiquetas o contenido."
+          />
+          <Feature
+            icon={<FaLock />}
+            title="Auditoría"
+            desc="Registro completo de actividad y trazabilidad."
+          />
         </div>
       </section>
 
-      <div className="divider" />
-
-      {/* Stack Tecnológico */}
-      <section className="tech-stack">
-        <h2>Stack Tecnológico</h2>
-        <div className="stack-cards">
-          <div className="stack-card">
-            <FaReact className="stack-icon" />
-            <span>React</span>
-          </div>
-          <div className="stack-card">
-            <FaPython className="stack-icon" />
-            <span>Flask</span>
-          </div>
-          <div className="stack-card">
-            <FaDatabase className="stack-icon" />
-            <span>PostgreSQL</span>
-          </div>
-          <div className="stack-card">
-            <FaReact className="stack-icon" />
-            <span>Formik &amp; Yup</span>
-          </div>
-        </div>
+      {/* Stack pequeño “Powered by” */}
+      <section className="powered">
+        <span>Powered&nbsp;by&nbsp;</span>
+        <FaReact className="pow-icon" title="React" />
+        <FaPython className="pow-icon" title="Flask" />
+        <FaDatabase className="pow-icon" title="PostgreSQL" />
       </section>
+    </div>
+  );
+}
+
+/* Pequeño componente para no repetir */
+function Feature({ icon, title, desc }) {
+  return (
+    <div className="feature-card">
+      <div className="feature-icon">{icon}</div>
+      <h3>{title}</h3>
+      <p>{desc}</p>
     </div>
   );
 }

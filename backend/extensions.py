@@ -8,4 +8,5 @@ db = SQLAlchemy()
 ma = Marshmallow()
 jwt = JWTManager()
 migrate = Migrate()
+
 cors = CORS      # se inicializa directamente en app.py

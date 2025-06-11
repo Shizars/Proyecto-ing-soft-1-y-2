@@ -1,7 +1,13 @@
+// src/componentes/Header.jsx
 import React from "react";
+import { useLocation } from "react-router-dom";
 import "./Header.css";
 
 function Header() {
+  const { pathname } = useLocation();
+  // Oculta Header en el Dashboard
+  if (pathname === "/dashboard") return null;
+
   return (
     <>
       {/* Barra superior con redes */}
@@ -79,7 +85,7 @@ function Header() {
               Inicio
             </a>
             <a href="/proyecto" className="nav-link">
-              Proyecto
+              Acerca de
             </a>
             <a
               href="https://www.ciudaddelnino.cl/"
@@ -87,7 +93,7 @@ function Header() {
               rel="noopener noreferrer"
               className="nav-link"
             >
-              Página de la fundación
+              Fundación
             </a>
           </nav>
 
