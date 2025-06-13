@@ -1,6 +1,8 @@
-// src/pages/DashboardPage.jsx
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
+import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import PdfPreviewModal from "../componentes/PdfPreviewModal";
 import "./DashboardPage.css";
 
 export default function DashboardPage() {
@@ -19,19 +21,20 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [userName, setUserName] = useState("");
+
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
+
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Carga de documentos
     loadDocuments();
-    // Obtiene nombre de usuario de localStorage
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    setUserName(storedUser?.nombre_usuario || storedUser?.email || "Usuario");
   }, []);
 
   const loadDocuments = async () => {
     try {
-      const res = await api.get("/documents");
+      const res = await api.get("/documents/");
       setDocuments(res.data);
     } catch (err) {
       console.error("Load documents error:", err);
@@ -56,8 +59,23 @@ export default function DashboardPage() {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+
     if (name === "file") {
-      setFormData((prev) => ({ ...prev, file: files[0] }));
+      const file = files[0];
+      if (file) {
+        const allowedExtensions = ["pdf", "doc", "docx", "xlsx"];
+        const extension = file.name.split(".").pop().toLowerCase();
+
+        if (!allowedExtensions.includes(extension)) {
+          setError(
+            "Formato no permitido. Solo se aceptan: PDF, DOC, DOCX, XLSX."
+          );
+          return;
+        }
+
+        setFormData((prev) => ({ ...prev, file }));
+        setError(""); // limpiar errores anteriores
+      }
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -95,6 +113,25 @@ export default function DashboardPage() {
     }
   };
 
+  const handlePreview = async (doc) => {
+    try {
+      const res = await api.get(`/documents/${doc.id}/url`);
+      let url = res.data.url;
+
+      if (doc.formato !== "pdf") {
+        url = `https://docs.google.com/gview?url=${encodeURIComponent(
+          url
+        )}&embedded=true`;
+      }
+
+      setPreviewUrl(url);
+      setPreviewOpen(true);
+    } catch (err) {
+      console.error("Preview error:", err.response || err);
+      alert("No se pudo cargar la vista previa.");
+    }
+  };
+
   return (
     <div className="dashboard">
       <aside className={menuOpen ? "sidebar open" : "sidebar"}>
@@ -105,7 +142,8 @@ export default function DashboardPage() {
           <button onClick={openModal}>Agregar documento</button>
           <button
             onClick={() => {
-              /* logout logic */
+              logout();
+              window.location.href = "/";
             }}
           >
             Cerrar sesión
@@ -114,26 +152,27 @@ export default function DashboardPage() {
       </aside>
 
       <main className="content">
-        {/* Header simulado de sesión iniciada */}
         <div className="dashboard-header">
-          <h2>Bienvenido/a, {userName}</h2>
+          <h2>
+            Bienvenido/a, {user?.nombre_usuario || user?.email || "Usuario"}
+          </h2>
           <p>
-            Bienvenido al sistema de gestión documental de la Fundación Cuidad
+            Bienvenido al sistema de gestión documental de la Fundación Ciudad
             Del Niño.
           </p>
         </div>
         <h1>Documentos</h1>
 
         {success && <div className="success">{success}</div>}
+
         <table className="doc-table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Código del documento</th>
-              <th>Fecha</th>
-              <th>Categoría</th>
-              <th>Región</th>
-              <th>Tipo</th>
+              <th>Título</th>
+              <th>Formato</th>
+              <th>Fecha de subida</th>
+              <th>Categoria</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -142,16 +181,20 @@ export default function DashboardPage() {
               <tr key={doc.id}>
                 <td>{doc.id}</td>
                 <td>{doc.titulo}</td>
-                <td>{`${doc.dia}/${doc.mes}/${doc.anno}`}</td>
-                <td>{doc.categoria}</td>
-                <td>{doc.region}</td>
                 <td>{doc.formato}</td>
+                <td>
+                  {doc.fecha_subida
+                    ? new Date(doc.fecha_subida).toLocaleString()
+                    : "—"}
+                </td>
+                <td>{doc.categoria}</td>
                 <td>
                   <button
                     onClick={() => api.get(`/documents/${doc.id}/download`)}
                   >
                     Descargar
                   </button>
+                  <button onClick={() => handlePreview(doc)}>Ver</button>
                 </td>
               </tr>
             ))}
@@ -234,6 +277,13 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Modal de vista previa */}
+      <PdfPreviewModal
+        isOpen={previewOpen}
+        url={previewUrl}
+        onClose={() => setPreviewOpen(false)}
+      />
     </div>
   );
 }

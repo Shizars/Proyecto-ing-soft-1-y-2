@@ -1,10 +1,11 @@
-# backend/app.py
-from flask import Flask
+from flask import Flask, send_from_directory
 from backend.config import Config
 from backend.extensions import db, ma, jwt, migrate, cors
 from backend.routes import all_blueprints
 
 from dotenv import load_dotenv
+import os
+
 load_dotenv()  # lee el .env
 
 
@@ -25,7 +26,14 @@ def create_app(config_class=Config):
     # Registrar blueprints
     for bp in all_blueprints:
         app.register_blueprint(bp)
-        # Mostrar todas las rutas registradas (solo para debug)
+
+    # Ruta pública para servir archivos desde /uploads
+    @app.route('/uploads/<path:filename>')
+    def uploaded_file(filename):
+        uploads_dir = os.path.join(app.root_path, 'uploads')
+        return send_from_directory(uploads_dir, filename)
+
+    # Mostrar todas las rutas registradas (solo para debug)
     for rule in app.url_map.iter_rules():
         print(rule)
 
