@@ -7,35 +7,45 @@
 }
 
 
+/* ancho fijo; animamos solo translateX */
+/* === SIDEBAR BASE === */
 .sidebar {
-  width: 60px;
-  background: linear-gradient(135deg, #909c8f 0%, #1d5063 100%);
+  width: 64px;                      /* ancho colapsado */
+  background: linear-gradient(135deg,#909c8f 0%,#1d5063 100%);
   color: #ecf0f1;
   overflow: hidden;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-  transform-origin: left;
-  transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
-              transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 2px 0 5px rgba(0,0,0,.08);
+  transition: width 0.35s cubic-bezier(.25,.8,.25,1);
 }
 
+/* === SIDEBAR EXPANDIDO === */
 .sidebar.open {
-  width: 200px;
-  transform: scaleX(1);
-}
-.sidebar:not(.open) {
-  transform: scaleX(0.9) translateX(-10px);
+  width: 220px;                     /* ancho expandido */
 }
 
+/* === TEXTO DE BOTONES === */
+.sidebar .menu-items span {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.sidebar.open .menu-items span {
+  opacity: 1;
+}
+
+/* === BOTÓN TOGGLE === */
 .toggle-btn {
   background: none;
   border: none;
   color: inherit;
-  font-size: 1.4em;
-  padding: 15px;
+  font-size: 1.6em;
+  padding: 16px 14px;
   cursor: pointer;
   width: 100%;
   text-align: left;
 }
+
+.toggle-btn:hover { transform: scale(1.15) rotate(5deg); }
 
 .menu-items {
   margin-top: 30px;
@@ -228,4 +238,145 @@ h1 {
 .dashboard-header p {
   margin: 5px 0 0;
   color: #5e6d6e;
+}
+:root {
+  --brand-blue: #185d8c;
+  --brand-sky:  #48a4e0;
+  --brand-green:#179c5a;
+  --grey-light: #f4f6f8;
+  --grey-mid:   #8f9aa6;
+}
+
+/* fondo global */
+body, .dashboard { background: var(--grey-light); }
+
+/* Sidebar nuevo estilo */
+.sidebar {
+  background: var(--brand-blue);
+  color:#fff;
+}
+.menu-items button {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding: 14px 18px;
+  font-weight:500;
+}
+.menu-items button i {
+  font-size:1.1em;
+  width:20px;
+  text-align:center;
+}
+
+/* Card look for rows */
+.doc-table { display:none; }           /* ocultamos tabla */
+
+.doc-list {                            /* nuevo contenedor */
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.doc-card {
+  display: grid;
+  grid-template-columns: 60px 1.4fr 0.9fr 1fr 1fr 120px;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 22px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+}
+
+.doc-id      { font-weight: 700; color: var(--brand-blue); }
+.doc-format  { font-weight: 600; color: var(--grey-mid);   }
+.doc-date    { color: var(--grey-mid);                     }
+.doc-cat     { font-style: italic; color: var(--grey-mid); }
+
+.doc-actions button {
+  background: var(--brand-sky);
+  margin-right: 6px;
+}
+.doc-actions button:last-child {
+  background: var(--brand-green);
+}
+.doc-card button{
+  background:var(--brand-sky);
+  margin-right:6px;
+}
+.doc-card button:last-child{background:var(--brand-green);}
+
+.dashboard-header h2{
+  font-size:2rem;
+  font-weight:700;
+  letter-spacing:-.5px;
+}
+/* ---------- Tarjeta de bienvenida ---------- */
+.welcome-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:24px 32px;
+  margin-bottom:28px;
+  background:#ffffff;
+  border-radius:16px;
+  border-left:6px solid var(--brand-blue);     /* acento corporativo */
+  box-shadow:0 4px 12px rgba(0,0,0,.05);
+}
+
+.welcome-text h1{
+  margin:0;
+  font-size:1.9rem;
+  font-weight:700;
+  color:var(--brand-blue);
+  letter-spacing:-.4px;
+}
+.welcome-text p{
+  margin:6px 0 0;
+  color:var(--grey-mid);
+  font-size:0.95rem;
+}
+
+.welcome-avatar{
+  font-size:3rem;
+  color:var(--brand-blue);
+  opacity:.85;
+}
+/* ---------- doc search ---------- */
+
+/* Header + búsqueda */
+/* buscador con ícono */
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-box i {
+  position: absolute;
+  left: 14px;
+  font-size: 0.9rem;
+  color: var(--grey-mid);
+  pointer-events: none;
+}
+
+.doc-search {
+  padding: 10px 14px 10px 38px;   /* espacio para el icono */
+  min-width: 220px;
+  border: 1px solid #bdc3c7;
+  border-radius: 24px;
+  background: #fff;
+  font-size: 0.95em;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  margin-bottom:9px ;
+}
+
+.doc-search::placeholder {
+  color: #9aa4ad;
+}
+
+.doc-search:focus {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgba(24,93,140,.15);
+  outline: none;
 }

@@ -1,5 +1,4 @@
-import React from "react";
-import "./AboutPage.css";
+import React, { useEffect } from "react";
 import {
   FaUserShield,
   FaUpload,
@@ -10,96 +9,115 @@ import {
   FaDatabase,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import "./AboutPage.css";
 
 export default function AboutPage() {
+  /* ---------- Scroll-reveal ---------- */
+  useEffect(() => {
+    const els = document.querySelectorAll(".reveal");
+    const onScroll = () => {
+      els.forEach((el) => {
+        if (el.getBoundingClientRect().top < window.innerHeight - 120) {
+          el.classList.add("visible");
+        }
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <div className="about-page">
-      {/* Hero */}
-      <section className="hero">
-        <div className="hero-overlay" />
-        <div className="hero-content">
-          <h1>Portal de Gestión Documental</h1>
-          <p>
-            Optimiza el manejo, clasificación y seguridad de los documentos de
-            la Fundación Ciudad del Niño a través de una plataforma moderna,
-            colaborativa y confiable.
-          </p>
-          <Link to="/registro" className="btn-cta">
-            Comienza ahora
+      {/* ---------- HERO CARD ---------- */}
+      <section className="hero-card">
+        {/* TOP BAR: logo + CTA única */}
+        <header className="hero-top">
+          <span className="logo">Fundación CDN</span>
+          <Link to="/contacto" className="btn-nav">
+            Contáctanos
           </Link>
+        </header>
+
+        {/* CUERPO */}
+        <div className="hero-body">
+          <div className="hero-text">
+            <h1>
+              Ofrecemos <span>soluciones inteligentes</span>
+              <br /> para impulsar tu misión
+            </h1>
+            <p>
+              Nuestra plataforma documental digitaliza, clasifica y protege la
+              información crítica de la Fundación Ciudad del Niño, facilitando
+              la colaboración y el acceso seguro desde cualquier lugar.
+            </p>
+
+            <div className="hero-btns">
+              <Link to="/registro" className="btn-primary">
+                Empezar
+              </Link>
+              <Link to="/proyecto" className="btn-outline">
+                Saber más
+              </Link>
+            </div>
+          </div>
+
+          {/* IMAGEN */}
+          <div className="hero-image">
+            <img
+              src="https://source.unsplash.com/collection/895539/400x400"
+              alt="Equipo Fundación"
+            />
+          </div>
         </div>
       </section>
 
-      {/* Sobre el proyecto */}
-      <section className="about-project">
-        <div className="project-box">
-          <h2>¿En qué consiste?</h2>
-          <p>
-            El sistema centraliza todos los documentos de la Fundación en una
-            única plataforma digital. Permite:
-          </p>
-          <ul>
-            <li>
-              <strong>Acceso seguro</strong> mediante autenticación con roles.
-            </li>
-            <li>
-              <strong>Control de versiones</strong> y trazabilidad de cambios.
-            </li>
-            <li>
-              <strong>Búsqueda</strong> por palabras clave, categoría o fecha.
-            </li>
-            <li>
-              <strong>Reportes</strong> y métricas para el equipo directivo.
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      {/* Funcionalidades */}
-      <section className="features">
+      {/* ---------- FUNCIONES ---------- */}
+      <section className="features reveal">
         <h2>Funciones clave</h2>
         <div className="feature-grid">
           <Feature
             icon={<FaUserShield />}
             title="Seguridad y Roles"
-            desc="Control de accesos, autenticación y autorización granular."
+            desc="Autenticación JWT y permisos granulares."
           />
           <Feature
             icon={<FaUpload />}
             title="Subida Inteligente"
-            desc="Clasificación automática y control de versiones."
+            desc="Clasificación automática y versionado."
           />
           <Feature
             icon={<FaSearch />}
             title="Búsqueda Avanzada"
-            desc="Filtra por fecha, categoría, etiquetas o contenido."
+            desc="Filtrado por categoría, fecha o contenido."
           />
           <Feature
             icon={<FaLock />}
             title="Auditoría"
-            desc="Registro completo de actividad y trazabilidad."
+            desc="Historial completo de actividades."
           />
         </div>
       </section>
 
-      {/* Stack pequeño “Powered by” */}
-      <section className="powered">
-        <span>Powered&nbsp;by&nbsp;</span>
-        <FaReact className="pow-icon" title="React" />
-        <FaPython className="pow-icon" title="Flask" />
-        <FaDatabase className="pow-icon" title="PostgreSQL" />
+      {/* ---------- STACK ---------- */}
+      <section className="stack reveal">
+        <h2>Tecnologías</h2>
+        <div className="stack-icons">
+          <FaReact title="React" />
+          <FaPython title="Flask" />
+          <FaDatabase title="PostgreSQL" />
+        </div>
       </section>
     </div>
   );
 }
 
-/* Pequeño componente para no repetir */
 function Feature({ icon, title, desc }) {
   return (
-    <div className="feature-card">
+    <article className="feature-card">
       <div className="feature-icon">{icon}</div>
       <h3>{title}</h3>
       <p>{desc}</p>
-    </div>
+    </article>
   );
 }

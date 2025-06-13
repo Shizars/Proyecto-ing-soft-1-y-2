@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
 import { useAuth } from "../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
 import PdfPreviewModal from "../componentes/PdfPreviewModal";
+import CategoryFilterModal from "../componentes/CategoryFilterModal";
 import "./DashboardPage.css";
 
 export default function DashboardPage() {
+  /* ---------------------- estados ---------------------- */
   const [menuOpen, setMenuOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [catOpen, setCatOpen] = useState(false);
+
   const [documents, setDocuments] = useState([]);
+  const [filterCats, setFilterCats] = useState([]); // categorías filtradas
+  const [searchTerm, setSearchTerm] = useState(""); // NUEVO
+
   const [formData, setFormData] = useState({
     file: null,
     name: "",
@@ -26,8 +32,8 @@ export default function DashboardPage() {
   const [previewUrl, setPreviewUrl] = useState("");
 
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
+  /* ---------------------- cargar docs ------------------ */
   useEffect(() => {
     loadDocuments();
   }, []);
@@ -41,6 +47,7 @@ export default function DashboardPage() {
     }
   };
 
+  /* ---------------------- utils UI --------------------- */
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const openModal = () => setModalOpen(true);
   const closeModal = () => {
@@ -57,27 +64,23 @@ export default function DashboardPage() {
     setError("");
   };
 
+  /* ---------------------- formulario ------------------- */
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-
     if (name === "file") {
       const file = files[0];
       if (file) {
-        const allowedExtensions = ["pdf", "doc", "docx", "xlsx"];
-        const extension = file.name.split(".").pop().toLowerCase();
-
-        if (!allowedExtensions.includes(extension)) {
-          setError(
-            "Formato no permitido. Solo se aceptan: PDF, DOC, DOCX, XLSX."
-          );
+        const allowed = ["pdf", "doc", "docx", "xlsx"];
+        const ext = file.name.split(".").pop().toLowerCase();
+        if (!allowed.includes(ext)) {
+          setError("Formato no permitido. Solo PDF, DOC, DOCX, XLSX.");
           return;
         }
-
-        setFormData((prev) => ({ ...prev, file }));
-        setError(""); // limpiar errores anteriores
+        setFormData((p) => ({ ...p, file }));
+        setError("");
       }
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((p) => ({ ...p, [name]: value }));
     }
   };
 
@@ -90,13 +93,15 @@ export default function DashboardPage() {
     }
 
     const payload = new FormData();
-    payload.append("file", formData.file);
-    payload.append("nombre", formData.name);
-    payload.append("dia", formData.day);
-    payload.append("mes", formData.month);
-    payload.append("anno", formData.year);
-    payload.append("categoria", formData.category);
-    payload.append("region", formData.region);
+    Object.entries({
+      file: formData.file,
+      nombre: formData.name,
+      dia: formData.day,
+      mes: formData.month,
+      anno: formData.year,
+      categoria: formData.category,
+      region: formData.region,
+    }).forEach(([k, v]) => payload.append(k, v));
 
     setLoading(true);
     try {
@@ -113,17 +118,16 @@ export default function DashboardPage() {
     }
   };
 
+  /* ---------------------- preview ---------------------- */
   const handlePreview = async (doc) => {
     try {
       const res = await api.get(`/documents/${doc.id}/url`);
       let url = res.data.url;
-
       if (doc.formato !== "pdf") {
         url = `https://docs.google.com/gview?url=${encodeURIComponent(
           url
         )}&embedded=true`;
       }
-
       setPreviewUrl(url);
       setPreviewOpen(true);
     } catch (err) {
@@ -132,81 +136,130 @@ export default function DashboardPage() {
     }
   };
 
+  /* ---------------------- filtrado --------------------- */
+  const docsToShow = documents.filter(
+    (d) =>
+      (filterCats.length === 0 || filterCats.includes(d.categoria)) &&
+      (searchTerm.trim() === "" ||
+        d.titulo.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const categoryOptions = [...new Set(documents.map((d) => d.categoria))];
+
+  /* ========================= UI ======================== */
   return (
     <div className="dashboard">
+      {/* ---------- SIDEBAR ---------- */}
       <aside className={menuOpen ? "sidebar open" : "sidebar"}>
         <button className="toggle-btn" onClick={toggleMenu}>
           ☰
         </button>
         <nav className="menu-items">
-          <button onClick={openModal}>Agregar documento</button>
+          <button onClick={openModal}>
+            <i className="fas fa-file-upload"></i>
+            <span>Agregar documento</span>
+          </button>
+          <button onClick={() => setCatOpen(true)}>
+            <i className="fas fa-filter"></i>
+            <span>Categorías</span>
+          </button>
           <button
             onClick={() => {
               logout();
               window.location.href = "/";
             }}
           >
-            Cerrar sesión
+            <i className="fas fa-sign-out-alt"></i>
+            <span>Cerrar sesión</span>
           </button>
         </nav>
       </aside>
 
+      {/* ---------- CONTENIDO ---------- */}
       <main className="content">
-        <div className="dashboard-header">
-          <h2>
-            Bienvenido/a, {user?.nombre_usuario || user?.email || "Usuario"}
-          </h2>
-          <p>
-            Bienvenido al sistema de gestión documental de la Fundación Ciudad
-            Del Niño.
-          </p>
+        {/* Tarjeta de bienvenida */}
+        <div className="welcome-card">
+          <div className="welcome-text">
+            <h1>¡Hola, {user?.nombre_usuario || user?.email || "Usuario"}!</h1>
+            <p>
+              Bienvenido al sistema de gestión documental de la Fundación Ciudad
+              del Niño.
+            </p>
+          </div>
+          <div className="welcome-avatar">
+            <i className="fas fa-user-circle"></i>
+          </div>
         </div>
-        <h1>Documentos</h1>
+
+        {/* Cabecera documentos + búsqueda */}
+        <div className="docs-header">
+          <h1>Documentos</h1>
+          <div className="search-box">
+            <i className="fas fa-search" />
+            <input
+              type="text"
+              className="doc-search"
+              placeholder="Buscar por nombre..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
 
         {success && <div className="success">{success}</div>}
 
-        <table className="doc-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Título</th>
-              <th>Formato</th>
-              <th>Fecha de subida</th>
-              <th>Categoria</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {documents.map((doc) => (
-              <tr key={doc.id}>
-                <td>{doc.id}</td>
-                <td>{doc.titulo}</td>
-                <td>{doc.formato}</td>
-                <td>
-                  {doc.fecha_subida
-                    ? new Date(doc.fecha_subida).toLocaleString()
-                    : "—"}
-                </td>
-                <td>{doc.categoria}</td>
-                <td>
-                  <button
-                    onClick={() => api.get(`/documents/${doc.id}/download`)}
-                  >
-                    Descargar
-                  </button>
-                  <button onClick={() => handlePreview(doc)}>Ver</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {/* Lista tipo tarjeta */}
+        <div className="doc-list">
+          {docsToShow.map((doc) => (
+            <div key={doc.id} className="doc-card">
+              <div className="doc-id">#{doc.id}</div>
+              <div className="doc-title">
+                <strong>{doc.titulo}</strong>
+              </div>
+              <div className="doc-format">{doc.formato.toUpperCase()}</div>
+              <div className="doc-date">
+                {doc.fecha_subida
+                  ? new Date(doc.fecha_subida).toLocaleDateString()
+                  : "—"}
+              </div>
+              <div className="doc-cat">{doc.categoria}</div>
+              <div className="doc-actions">
+                <button
+                  onClick={() => api.get(`/documents/${doc.id}/download`)}
+                >
+                  <i className="fas fa-download"></i>
+                </button>
+                <button onClick={() => handlePreview(doc)}>
+                  <i className="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </main>
+
+      {/* ---------- MODALES ---------- */}
+      <PdfPreviewModal
+        isOpen={previewOpen}
+        url={previewUrl}
+        onClose={() => setPreviewOpen(false)}
+      />
+
+      <CategoryFilterModal
+        isOpen={catOpen}
+        categories={categoryOptions}
+        selected={filterCats}
+        onSave={setFilterCats}
+        onClose={() => setCatOpen(false)}
+      />
 
       {modalOpen && (
         <div className="modal-overlay">
           <div className="modal">
             <h2>Agregar Documento</h2>
+            {/* ---- formulario de subida ---- */}
             <form onSubmit={handleSubmit}>
+              {/* campos ya existentes */}
               <div className="field-group">
                 <label>Archivo</label>
                 <input type="file" name="file" onChange={handleChange} />
@@ -214,7 +267,6 @@ export default function DashboardPage() {
               <div className="field-group">
                 <label>Código del documento</label>
                 <input
-                  type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
@@ -223,21 +275,18 @@ export default function DashboardPage() {
               <div className="field-group date-group">
                 <label>Fecha</label>
                 <input
-                  type="text"
                   name="day"
                   placeholder="DD"
                   value={formData.day}
                   onChange={handleChange}
                 />
                 <input
-                  type="text"
                   name="month"
                   placeholder="MM"
                   value={formData.month}
                   onChange={handleChange}
                 />
                 <input
-                  type="text"
                   name="year"
                   placeholder="YYYY"
                   value={formData.year}
@@ -247,7 +296,6 @@ export default function DashboardPage() {
               <div className="field-group">
                 <label>Categoría</label>
                 <input
-                  type="text"
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
@@ -256,7 +304,6 @@ export default function DashboardPage() {
               <div className="field-group">
                 <label>Región</label>
                 <input
-                  type="text"
                   name="region"
                   value={formData.region}
                   onChange={handleChange}
@@ -277,13 +324,6 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-
-      {/* Modal de vista previa */}
-      <PdfPreviewModal
-        isOpen={previewOpen}
-        url={previewUrl}
-        onClose={() => setPreviewOpen(false)}
-      />
     </div>
   );
 }

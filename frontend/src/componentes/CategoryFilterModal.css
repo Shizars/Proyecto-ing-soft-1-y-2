@@ -1,0 +1,37 @@
+.cat-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55);
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+
+.cat-modal {
+  background: #fff; width: 420px; max-width: 90%;
+  padding: 28px 26px; border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+
+.cat-modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 22px;
+}
+.cat-close {
+  background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #555;
+}
+
+.cat-subtitle { margin-bottom: 12px; color: #185d8c; }
+
+.cat-list {
+  border: 2px solid #ddd; border-radius: 8px; padding: 18px 14px;
+  display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px;
+}
+.cat-item { display: flex; align-items: center; gap: 10px; font-size: 1rem; }
+
+.cat-actions { display: flex; justify-content: flex-end; gap: 12px; }
+.cat-save {
+  background: #179c5a; color: #fff; padding: 10px 20px; border: none;
+  border-radius: 6px; cursor: pointer;
+}
+.cat-cancel {
+  background: #c0392b; color: #fff; padding: 10px 18px; border: none;
+  border-radius: 6px; cursor: pointer;
+}
+.cat-save:hover, .cat-cancel:hover { opacity: 0.9; }
