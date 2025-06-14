@@ -64,10 +64,7 @@ export default function AboutPage() {
 
           {/* IMAGEN */}
           <div className="hero-image">
-            <img
-              src="https://source.unsplash.com/collection/895539/400x400"
-              alt="Equipo Fundación"
-            />
+            <img src={require("../img/shiza.png")} alt="Equipo Fundación" />
           </div>
         </div>
       </section>

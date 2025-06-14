@@ -10,37 +10,41 @@ import PrivateRoute from "./componentes/PrivateRoute"; // el wrapper que creaste
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
+// …imports
 function App() {
   return (
     <Router>
       <div className="App">
         <Header />
 
-        <Routes>
-          {/* Públicas */}
-          <Route path="/registro" element={<RegisterPage />} />
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/proyecto" element={<AboutPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route
-            path="/reset-password/:token"
-            element={<ResetPasswordPage />}
-          />
-          {/* Privadas */}
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <DashboardPage />
-              </PrivateRoute>
-            }
-          />
-        </Routes>
+        {/* NUEVO contenedor flexible */}
+        <main className="App-content">
+          <Routes>
+            {/* Públicas */}
+            <Route path="/registro" element={<RegisterPage />} />
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/proyecto" element={<AboutPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route
+              path="/reset-password/:token"
+              element={<ResetPasswordPage />}
+            />
+
+            {/* Privadas */}
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <DashboardPage />
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </main>
 
         <Footer />
       </div>
     </Router>
   );
 }
-
 export default App;
