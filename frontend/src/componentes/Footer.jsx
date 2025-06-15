@@ -1,123 +1,95 @@
 import React from "react";
-import { FaYoutube, FaFacebookF, FaXTwitter } from "react-icons/fa6"; // usa FaTwitter si tu versión de react-icons es < 4.10
 import "./Footer.css";
 
 export default function Footer() {
-  const year = new Date().getFullYear();
-
   return (
-    <footer className="footer">
-      <div className="footer-main">
-        {/* ---------- Marca ---------- */}
+    <footer className="cdn-footer">
+      <div className="footer-inner">
         <div className="footer-brand">
           <img
-            src="/logo-green.svg"
+            src={require("../img/logo_cdn_2019.png")}
             alt="Fundación Ciudad del Niño"
-            className="footer-logo"
           />
-          <p className="footer-claim">
-            Por la protección y desarrollo de los niños y niñas de Chile.
-          </p>
         </div>
 
-        {/* ---------- Columnas ---------- */}
-        <div className="footer-columns">
-          <div className="footer-col">
-            <h4 className="footer-heading">Info</h4>
-            <a href="/formatos" className="footer-link">
-              Formatos
-            </a>
-            <a href="/faq" className="footer-link">
-              Preguntas frecuentes
-            </a>
-            <a href="/estado" className="footer-link">
-              Estado
-            </a>
-          </div>
+        {/* columnas de enlaces */}
+        <div className="footer-cols">
+          <ul>
+            <li className="foot-title">Info</li>
+            <li>
+              <a href="/proyecto">Acerca de</a>
+            </li>
+            <li>
+              <a href="https://www.ciudaddelnino.cl/">Web oficial</a>
+            </li>
+          </ul>
 
-          <div className="footer-col">
-            <h4 className="footer-heading">Recursos</h4>
-            <a href="/herramientas" className="footer-link">
-              Herramientas
-            </a>
-            <a href="/blog" className="footer-link">
-              Blog
-            </a>
-            <a href="/documentacion" className="footer-link">
-              Documentación
-            </a>
-          </div>
+          <ul>
+            <li className="foot-title">Recursos</li>
+            <li>
+              <a href="#">Preguntas frecuentes</a>
+            </li>
+            <li>
+              <a href="#">Guía rápida</a>
+            </li>
+          </ul>
 
-          <div className="footer-col">
-            <h4 className="footer-heading">Compañía</h4>
-            <a href="/acerca" className="footer-link">
-              Acerca de
-            </a>
-            <a href="/sustentabilidad" className="footer-link">
-              Sustentabilidad
-            </a>
-            <a href="/privacidad" className="footer-link">
-              Privacidad
-            </a>
-          </div>
+          <ul>
+            <li className="foot-title">Compañía</li>
+            <li>
+              <a href="#">Política de privacidad</a>
+            </li>
+            <li>
+              <a href="#">Términos de uso</a>
+            </li>
+          </ul>
+        </div>
 
-          {/* ---------- Newsletter + RRSS ---------- */}
-          <div className="footer-col footer-newsletter">
-            <h4 className="footer-heading">Suscríbete</h4>
-            <form
-              className="footer-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                /* integra tu servicio aquí */
-              }}
+        {/* newsletter y redes */}
+        <div className="footer-news">
+          <span className="foot-title">Mantente al día</span>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              /* …aquí iría tu lógica de suscripción… */
+            }}
+          >
+            <input placeholder="Tu correo…" />
+            <button>Suscribir</button>
+          </form>
+
+          <div className="foot-social">
+            <a
+              href="https://www.youtube.com/@fundacionciudaddelnino8462/videos"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="YouTube"
             >
-              <input
-                type="email"
-                required
-                placeholder="Tu email"
-                className="footer-input"
-              />
-              <button type="submit" className="footer-btn">
-                Suscribir
-              </button>
-            </form>
-
-            <div className="footer-social">
-              <a
-                href="https://www.youtube.com/@fundacionciudaddelnino8462/videos"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-                className="footer-social-link"
-              >
-                <FaYoutube />
-              </a>
-              <a
-                href="https://web.facebook.com/fciudaddelninocl"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-                className="footer-social-link"
-              >
-                <FaFacebookF />
-              </a>
-              <a
-                href="https://x.com/ciudaddelninocl"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="X (Twitter)"
-                className="footer-social-link"
-              >
-                <FaXTwitter />{" "}
-                {/* Cambia por <FaTwitter /> si fuese necesario */}
-              </a>
-            </div>
+              <img src={require("../img/youtube.png")} alt="" />
+            </a>
+            <a
+              href="https://web.facebook.com/fciudaddelninocl"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+            >
+              <img src={require("../img/facebook.png")} alt="" />
+            </a>
+            <a
+              href="https://x.com/ciudaddelninocl"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="X"
+            >
+              <img src={require("../img/twitter.png")} alt="" />
+            </a>
           </div>
         </div>
       </div>
 
-      <div className="footer-bottom">
-        © {year} Fundación Ciudad del Niño. Todos los derechos reservados.
+      {/* franja inferior */}
+      <div className="footer-copy">
+        © 2025 Fundación Ciudad del Niño. Todos los derechos reservados.
       </div>
     </footer>
   );

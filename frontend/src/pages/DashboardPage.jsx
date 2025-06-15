@@ -6,14 +6,17 @@ import CategoryFilterModal from "../componentes/CategoryFilterModal";
 import "./DashboardPage.css";
 
 export default function DashboardPage() {
-  /* ---------------------- estados ---------------------- */
+  /* ---------- estados ---------- */
   const [menuOpen, setMenuOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
-
   const [documents, setDocuments] = useState([]);
-  const [filterCats, setFilterCats] = useState([]); // categorías filtradas
-  const [searchTerm, setSearchTerm] = useState(""); // NUEVO
+  const [filterCats, setFilterCats] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem("theme") === "dark"
+  );
 
   const [formData, setFormData] = useState({
     file: null,
@@ -33,25 +36,28 @@ export default function DashboardPage() {
 
   const { user, logout } = useAuth();
 
-  /* ---------------------- cargar docs ------------------ */
+  /* ---------- tema ---------- */
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
+
+  /* ---------- cargar docs ---------- */
   useEffect(() => {
     loadDocuments();
   }, []);
-
   const loadDocuments = async () => {
     try {
-      const res = await api.get("/documents/");
-      setDocuments(res.data);
+      setDocuments((await api.get("/documents/")).data);
     } catch (err) {
       console.error("Load documents error:", err);
     }
   };
 
-  /* ---------------------- utils UI --------------------- */
+  /* ---------- helpers ---------- */
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const openModal = () => setModalOpen(true);
   const closeModal = () => {
-    setModalOpen(false);
     setFormData({
       file: null,
       name: "",
@@ -62,9 +68,10 @@ export default function DashboardPage() {
       region: "",
     });
     setError("");
+    setModalOpen(false);
   };
 
-  /* ---------------------- formulario ------------------- */
+  /* ---------- inputs ---------- */
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "file") {
@@ -86,11 +93,12 @@ export default function DashboardPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     if (!formData.file) {
       setError("Elija un archivo.");
       return;
     }
+    setLoading(true);
+    setError("");
 
     const payload = new FormData();
     Object.entries({
@@ -103,7 +111,6 @@ export default function DashboardPage() {
       region: formData.region,
     }).forEach(([k, v]) => payload.append(k, v));
 
-    setLoading(true);
     try {
       await api.post("/documents/upload", payload);
       await loadDocuments();
@@ -118,11 +125,10 @@ export default function DashboardPage() {
     }
   };
 
-  /* ---------------------- preview ---------------------- */
   const handlePreview = async (doc) => {
     try {
-      const res = await api.get(`/documents/${doc.id}/url`);
-      let url = res.data.url;
+      const { data } = await api.get(`/documents/${doc.id}/url`);
+      let url = data.url;
       if (doc.formato !== "pdf") {
         url = `https://docs.google.com/gview?url=${encodeURIComponent(
           url
@@ -136,109 +142,143 @@ export default function DashboardPage() {
     }
   };
 
-  /* ---------------------- filtrado --------------------- */
+  /* ---------- filtros ---------- */
   const docsToShow = documents.filter(
     (d) =>
       (filterCats.length === 0 || filterCats.includes(d.categoria)) &&
       (searchTerm.trim() === "" ||
         d.titulo.toLowerCase().includes(searchTerm.toLowerCase()))
   );
-
   const categoryOptions = [...new Set(documents.map((d) => d.categoria))];
 
-  /* ========================= UI ======================== */
+  /* ---------- UI ---------- */
   return (
     <div className="dashboard">
-      {/* ---------- SIDEBAR ---------- */}
+      {/* ===== SIDEBAR ===== */}
       <aside className={menuOpen ? "sidebar open" : "sidebar"}>
+        <div className="sidebar-brand">
+          <span className="brand-name">Sistema de gestión documental</span>
+        </div>
+
+        <div className="sidebar-profile">
+          <img
+            src={`https://api.dicebear.com/7.x/initials/svg?seed=${
+              (user?.nombre_usuario || "U")[0]
+            }`}
+            alt="avatar"
+          />
+          <span>{user?.nombre_usuario || user?.email}</span>
+        </div>
+
         <button className="toggle-btn" onClick={toggleMenu}>
           ☰
         </button>
+
         <nav className="menu-items">
           <button onClick={openModal}>
-            <i className="fas fa-file-upload"></i>
+            <i className="fas fa-file-upload" />
             <span>Agregar documento</span>
           </button>
+
           <button onClick={() => setCatOpen(true)}>
-            <i className="fas fa-filter"></i>
+            <i className="fas fa-filter" />
             <span>Categorías</span>
           </button>
-          <button
-            onClick={() => {
-              logout();
-              window.location.href = "/";
-            }}
-          >
-            <i className="fas fa-sign-out-alt"></i>
+
+          <button onClick={() => setDarkMode((p) => !p)}>
+            <i className={darkMode ? "fas fa-sun" : "fas fa-moon"} />
+            <span>{darkMode ? "Modo claro" : "Modo oscuro"}</span>
+          </button>
+
+          <button onClick={logout}>
+            <i className="fas fa-sign-out-alt" />
             <span>Cerrar sesión</span>
           </button>
         </nav>
       </aside>
 
-      {/* ---------- CONTENIDO ---------- */}
+      {/* ===== MAIN ===== */}
       <main className="content">
-        {/* Tarjeta de bienvenida */}
-        <div className="welcome-card">
-          <div className="welcome-text">
-            <h1>¡Hola, {user?.nombre_usuario || user?.email || "Usuario"}!</h1>
-            <p>
-              Bienvenido al sistema de gestión documental de la Fundación Ciudad
-              del Niño.
-            </p>
-          </div>
-          <div className="welcome-avatar">
-            <i className="fas fa-user-circle"></i>
-          </div>
-        </div>
-
-        {/* Cabecera documentos + búsqueda */}
-        <div className="docs-header">
-          <h1>Documentos</h1>
-          <div className="search-box">
-            <i className="fas fa-search" />
-            <input
-              type="text"
-              className="doc-search"
-              placeholder="Buscar por nombre..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {success && <div className="success">{success}</div>}
-
-        {/* Lista tipo tarjeta */}
-        <div className="doc-list">
-          {docsToShow.map((doc) => (
-            <div key={doc.id} className="doc-card">
-              <div className="doc-id">#{doc.id}</div>
-              <div className="doc-title">
-                <strong>{doc.titulo}</strong>
-              </div>
-              <div className="doc-format">{doc.formato.toUpperCase()}</div>
-              <div className="doc-date">
-                {doc.fecha_subida
-                  ? new Date(doc.fecha_subida).toLocaleDateString()
-                  : "—"}
-              </div>
-              <div className="doc-cat">{doc.categoria}</div>
-              <div className="doc-actions">
-                <button
-                  onClick={() => api.get(`/documents/${doc.id}/download`)}
-                >
-                  <i className="fas fa-download"></i>
-                </button>
-                <button onClick={() => handlePreview(doc)}>
-                  <i className="fas fa-eye"></i>
-                </button>
-              </div>
+        {/* ---- bloque “Overview” ---- */}
+        <div className="overview-card">
+          <header className="overview-head">
+            <div>
+              <h2>Tus carpetas</h2>
+              <p>
+                Crea carpetas personalizadas y accede rápidamente a los
+                documentos de la fundación.
+              </p>
             </div>
-          ))}
+          </header>
+
+          {/* mini-carpetas */}
+          <div className="folder-grid">
+            <div className="folder-card green">
+              <span className="folder-id">01</span>
+              <span className="folder-title">F-SGC-033-B</span>
+            </div>
+            <div className="folder-card purple">
+              <span className="folder-id">02</span>
+              <span className="folder-title">F-SGC-036</span>
+            </div>
+            <div className="folder-card gallery">
+              <span className="folder-id">+</span>
+              <span className="folder-title">Nueva carpeta</span>
+            </div>
+          </div>
         </div>
+
+        {/* ---- sección documentos ---- */}
+        <section className="files-section">
+          {/* --- buscador antes del título --- */}
+          <div className="files-top">
+            <div className="search-box wide">
+              <i className="fas fa-search" />
+              <input
+                className="doc-search"
+                placeholder="Buscar por nombre..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          <br />
+
+          <h3 className="section-title">Tus documentos</h3>
+
+          {success && <div className="success">{success}</div>}
+
+          <div className="doc-list">
+            {docsToShow.map((doc) => (
+              <div key={doc.id} className="doc-card">
+                <div className="doc-id">#{doc.id}</div>
+                <div className="doc-title">
+                  <strong>{doc.titulo}</strong>
+                </div>
+                <div className="doc-format">{doc.formato.toUpperCase()}</div>
+                <div className="doc-date">
+                  {doc.fecha_subida
+                    ? new Date(doc.fecha_subida).toLocaleDateString()
+                    : "—"}
+                </div>
+                <div className="doc-cat">{doc.categoria}</div>
+                <div className="doc-actions">
+                  <button
+                    onClick={() => api.get(`/documents/${doc.id}/download`)}
+                  >
+                    <i className="fas fa-download" />
+                  </button>
+                  <button onClick={() => handlePreview(doc)}>
+                    <i className="fas fa-eye" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
 
-      {/* ---------- MODALES ---------- */}
+      {/* ===== MODALES ===== */}
       <PdfPreviewModal
         isOpen={previewOpen}
         url={previewUrl}
@@ -257,13 +297,12 @@ export default function DashboardPage() {
         <div className="modal-overlay">
           <div className="modal">
             <h2>Agregar Documento</h2>
-            {/* ---- formulario de subida ---- */}
             <form onSubmit={handleSubmit}>
-              {/* campos ya existentes */}
               <div className="field-group">
                 <label>Archivo</label>
                 <input type="file" name="file" onChange={handleChange} />
               </div>
+
               <div className="field-group">
                 <label>Código del documento</label>
                 <input
@@ -272,6 +311,7 @@ export default function DashboardPage() {
                   onChange={handleChange}
                 />
               </div>
+
               <div className="field-group date-group">
                 <label>Fecha</label>
                 <input
@@ -293,6 +333,7 @@ export default function DashboardPage() {
                   onChange={handleChange}
                 />
               </div>
+
               <div className="field-group">
                 <label>Categoría</label>
                 <input
@@ -301,6 +342,7 @@ export default function DashboardPage() {
                   onChange={handleChange}
                 />
               </div>
+
               <div className="field-group">
                 <label>Región</label>
                 <input

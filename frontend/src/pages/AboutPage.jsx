@@ -31,12 +31,8 @@ export default function AboutPage() {
     <div className="about-page">
       {/* ---------- HERO CARD ---------- */}
       <section className="hero-card">
-        {/* TOP BAR: logo + CTA única */}
         <header className="hero-top">
-          <span className="logo">Fundación CDN</span>
-          <Link to="/contacto" className="btn-nav">
-            Contáctanos
-          </Link>
+          <span className="logo">Fundación Cuidad Del Niño</span>
         </header>
 
         {/* CUERPO */}
@@ -64,7 +60,7 @@ export default function AboutPage() {
 
           {/* IMAGEN */}
           <div className="hero-image">
-            <img src={require("../img/shiza.png")} alt="Equipo Fundación" />
+            <img src={require("../img/FCDN.png")} alt="Equipo Fundación" />
           </div>
         </div>
       </section>

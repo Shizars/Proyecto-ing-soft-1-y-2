@@ -23,7 +23,7 @@ export default function RegisterPage() {
       {/* Panel izquierdo */}
       <div className="register-left">
         <img
-          src={require("../img/banner_cdn.png")}
+          src={require("../img/cdn_docs.png")}
           alt="Fundación Ciudad del Niño"
           className="auth-logo"
         />

@@ -21,7 +21,7 @@ export default function LoginPage() {
       {/* Panel izquierdo */}
       <div className="login-left">
         <img
-          src={require("../img/banner_cdn.png")}
+          src={require("../img/cdn_docs.png")}
           alt="Fundación Ciudad del Niño"
           className="auth-logo"
         />

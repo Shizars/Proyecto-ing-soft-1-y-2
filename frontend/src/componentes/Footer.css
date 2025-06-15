@@ -1,149 +1,105 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
-
-/* -------- Variables -------- */
+/* colores base: los mismos que Header */
 :root {
-  --green: #b2d135;
-  --green-dark: #9fbe2f;
-  --white: #ffffff;
-  --text-dark: #333333;
-  --text-light: #666666;
+  --cdn-green: #b2d135;
+  --cdn-celeste: #00ade5;
+  --text-strong: #006c95;
+  --text-muted: #6b7280;
 }
 
-/* -------- Contenedor -------- */
-.footer {
+/* footer contenedor */
+.cdn-footer {
+  background: #fff;
+  border-top: 5px solid var(--cdn-green);
   font-family: "Poppins", sans-serif;
-  background: var(--white);
-  color: var(--text-dark);
-  width: 100%;
-  border-top: 3px solid var(--green);
+  color: var(--text-strong);
 }
 
-/* -------- Zona principal -------- */
-.footer-main {
-  max-width: 1200px;
+/* zona principal */
+.footer-inner {
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 40px 24px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 40px;
-  justify-content: space-between;
+  padding: 50px 24px 40px;
+  display: grid;
+  grid-template-columns: 240px 1fr 260px;
+  gap: 48px;
 }
 
-/* Marca */
-.footer-brand {
-  flex: 1 1 240px;
-}
-.footer-logo {
-  width: 160px;
-  height: auto;
+/* ---------------- columnas ---------------- */
+.footer-brand img {
+  width: 140px;
   margin-bottom: 12px;
 }
-.footer-claim {
-  font-size: 0.9rem;
-  line-height: 1.4;
-  margin: 0;
-  color: var(--text-light);
+.footer-brand p {
+  font-weight: 600;
 }
 
-/* Columnas */
-.footer-columns {
-  flex: 3 1 600px;
+.footer-cols {
   display: flex;
-  flex-wrap: wrap;
-  gap: 40px;
+  gap: 50px;
 }
-.footer-col {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 120px;
+.footer-cols ul { list-style: none; padding: 0; }
+.foot-title {
+  font-weight: 700;
+  margin-bottom: 10px;
 }
-.footer-heading {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 4px;
-  color: var(--green);
-}
-.footer-link {
-  font-size: 0.85rem;
-  color: var(--text-light);
+.footer-cols a {
+  color: var(--text-muted);
+  font-size: 0.92rem;
   text-decoration: none;
-  transition: color 0.2s;
 }
-.footer-link:hover {
-  color: var(--green-dark);
-}
+.footer-cols a:hover { color: var(--cdn-celeste); }
 
-/* Newsletter */
-.footer-form {
+/* ---------------- newsletter + redes ---------------- */
+.footer-news form {
+  margin: 8px 0 20px;
   display: flex;
-  margin-top: 8px;
 }
-.footer-input {
+.footer-news input {
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid var(--green);
-  border-right: none;
+  padding: 10px 14px;
+  border: 2px solid var(--cdn-green);
   border-radius: 4px 0 0 4px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
-.footer-btn {
-  padding: 8px 16px;
+.footer-news button {
+  background: var(--cdn-green);
+  color: #fff;
   border: none;
-  background: var(--green);
-  color: var(--white);
+  padding: 10px 18px;
   font-weight: 600;
-  cursor: pointer;
   border-radius: 0 4px 4px 0;
-  transition: background 0.2s;
+  cursor: pointer;
+  transition: opacity 0.2s;
 }
-.footer-btn:hover {
-  background: var(--green-dark);
-}
+.footer-news button:hover { opacity: 0.85; }
 
-/* -------- Redes sociales -------- */
-.footer-social {
-  margin-top: 12px;
+/* iconos sociales */
+.foot-social {
   display: flex;
-  gap: 12px;
+  gap: 14px;
 }
-.footer-social-link {
-  font-size: 24px;        /* tamaño de los íconos */
-  color: var(--green);
-  transition: transform 0.2s, color 0.2s;
+.foot-social img {
+  width: 20px;
+  filter: invert(1);       /* iconos blancos sobre verde */
+  transition: transform 0.2s;
 }
-.footer-social-link:hover {
-  color: var(--green-dark);
-  transform: scale(1.2);
-}
+.foot-social a:hover img { transform: scale(1.2); }
 
-/* -------- Línea inferior -------- */
-.footer-bottom {
-  background: var(--green);
+/* ---------------- franja copyright ---------------- */
+.footer-copy {
+  background: var(--cdn-green);
+  color: #fff;
   text-align: center;
-  padding: 16px 24px;
-  font-size: 0.8rem;
-  color: var(--white);
+  font-size: 0.85rem;
+  padding: 12px 8px;
 }
 
-/* -------- Responsive -------- */
-@media (max-width: 768px) {
-  .footer-main {
-    flex-direction: column;
-    gap: 24px;
+/* ---------- responsive pequeño ---------- */
+@media (max-width: 820px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    text-align: center;
   }
-  .footer-columns {
-    gap: 24px;
-  }
-  .footer-form {
-    flex-direction: column;
-  }
-  .footer-input,
-  .footer-btn {
-    width: 100%;
-    border-radius: 4px;
-  }
-  .footer-btn {
-    margin-top: 8px;
-  }
+  .footer-cols { justify-content: center; }
 }
