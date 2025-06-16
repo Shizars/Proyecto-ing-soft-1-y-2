@@ -1,14 +1,18 @@
+// src/pages/RegisterPage.jsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import api from "../services/api";
+import { useAuth } from "../hooks/useAuth";
 import "./RegisterPage.css";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const auth = useAuth(); // ← hook de autenticación
   const [apiError, setApiError] = useState("");
 
+  /* ---------- Validación ---------- */
   const schema = Yup.object({
     name: Yup.string().required("Requerido"),
     email: Yup.string().email("Email inválido").required("Requerido"),
@@ -46,11 +50,17 @@ export default function RegisterPage() {
           onSubmit={async (values, { setSubmitting }) => {
             setApiError("");
             try {
+              /* 1️⃣ Crear usuario */
               await api.post("/auth/register", {
                 nombre_usuario: values.name,
                 email: values.email,
                 password: values.password,
               });
+
+              /* 2️⃣ Auto-login (guarda token + contexto) */
+              await auth.login(values.email, values.password);
+
+              /* 3️⃣ Redirigir al dashboard */
               navigate("/dashboard");
             } catch (err) {
               setApiError(

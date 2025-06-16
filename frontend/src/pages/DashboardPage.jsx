@@ -340,6 +340,7 @@ export default function DashboardPage() {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
+                  required
                 />
               </div>
 
