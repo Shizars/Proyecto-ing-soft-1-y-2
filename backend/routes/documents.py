@@ -1,6 +1,8 @@
-from flask import Blueprint, request
+from pathlib import Path
+from flask import Blueprint, request, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from backend.services.document_service import save_file
+
+from backend.services.document_service import save_file, UPLOAD_DIR
 from backend.schemas.document_schema import docs_schema
 
 docs_bp = Blueprint("documents", __name__, url_prefix="/api/documents")
@@ -10,7 +12,7 @@ ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "xlsx"}
 
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @docs_bp.post("/upload")
@@ -24,7 +26,9 @@ def upload():
 
     # Validación del formato del archivo
     if not allowed_file(file_obj.filename):
-        return {"error": "Formato de archivo no permitido. Solo PDF, DOC, DOCX y XLSX son aceptados."}, 400
+        return {
+            "error": "Formato de archivo no permitido. Solo PDF, DOC, DOCX y XLSX son aceptados."
+        }, 400
 
     user_id = get_jwt_identity()
     categoria = request.form.get("categoria", "General")
@@ -60,3 +64,26 @@ def get_document_url(doc_id):
 
     url = request.url_root.rstrip("/") + "/uploads/" + relative_path
     return {"url": url}, 200
+
+
+@docs_bp.get("/<int:doc_id>/download")
+@jwt_required()
+def download(doc_id):
+    """Envía el archivo binario al usuario autenticado si tiene permiso."""
+    from backend.models.document import Document
+
+    user_id = get_jwt_identity()
+    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+
+    abs_path: Path = (UPLOAD_DIR.parent / doc.file_path).resolve()
+    if not abs_path.exists():
+        return {"error": "Archivo no disponible"}, 404
+
+    return send_file(
+        abs_path,
+        as_attachment=True,
+        download_name=doc.titulo,
+        mimetype="application/octet-stream",
+    )

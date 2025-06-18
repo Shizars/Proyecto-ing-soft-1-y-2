@@ -71,6 +71,25 @@ export default function DashboardPage() {
     setModalOpen(false);
   };
 
+  /* ---------- descarga ---------- */
+  const handleDownload = async (doc) => {
+    try {
+      const res = await api.get(`/documents/${doc.id}/download`, {
+        responseType: "blob",
+      });
+      const blob = new Blob([res.data]);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = doc.titulo;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download error:", err.response || err);
+      alert("No se pudo descargar el documento.");
+    }
+  };
+
   /* ---------- inputs ---------- */
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -255,7 +274,9 @@ export default function DashboardPage() {
                 <div className="doc-title">
                   <strong>{doc.titulo}</strong>
                 </div>
-                <div className="doc-format">{doc.formato.toUpperCase()}</div>
+                <div className="doc-format">
+                  {doc.formato ? doc.formato.toUpperCase() : "?"}
+                </div>
                 <div className="doc-date">
                   {doc.fecha_subida
                     ? new Date(doc.fecha_subida).toLocaleDateString()
@@ -263,9 +284,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="doc-cat">{doc.categoria}</div>
                 <div className="doc-actions">
-                  <button
-                    onClick={() => api.get(`/documents/${doc.id}/download`)}
-                  >
+                  <button onClick={() => handleDownload(doc)}>
                     <i className="fas fa-download" />
                   </button>
                   <button onClick={() => handlePreview(doc)}>
