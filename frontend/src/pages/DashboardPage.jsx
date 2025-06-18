@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import PdfPreviewModal from "../componentes/PdfPreviewModal";
 import CategoryFilterModal from "../componentes/CategoryFilterModal";
 import "./DashboardPage.css";
+import CategoryPieChart from "../componentes/CategoryPieChart";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -74,6 +75,7 @@ export default function DashboardPage() {
   /* ---------- descarga ---------- */
   const handleDownload = async (doc) => {
     try {
+      alert("Iniciando descarga…"); // <- mensaje para el usuario
       const res = await api.get(`/documents/${doc.id}/download`, {
         responseType: "blob",
       });
@@ -135,7 +137,7 @@ export default function DashboardPage() {
       await loadDocuments();
       closeModal();
       setSuccess("El documento se subió de manera exitosa.");
-      setTimeout(() => setSuccess(""), 5000);
+      setTimeout(() => setSuccess(""), 10000000);
     } catch (err) {
       console.error("Upload error:", err.response || err);
       setError(err.response?.data?.error || "Error al subir documento.");
@@ -246,6 +248,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        <CategoryPieChart documents={documents} />
 
         {/* ---- sección documentos ---- */}
         <section className="files-section">
