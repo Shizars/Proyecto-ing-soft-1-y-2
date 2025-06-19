@@ -5,7 +5,7 @@ import PdfPreviewModal from "../componentes/PdfPreviewModal";
 import CategoryFilterModal from "../componentes/CategoryFilterModal";
 import "./DashboardPage.css";
 import CategoryPieChart from "../componentes/CategoryPieChart";
-
+import SessionTimer from "../componentes/SessionTimer";
 export default function DashboardPage() {
   /* ---------- estados ---------- */
   const [menuOpen, setMenuOpen] = useState(true);
@@ -303,6 +303,7 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+          <SessionTimer onTimeout={logout} />
         </section>
       </main>
 
