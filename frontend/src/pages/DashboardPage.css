@@ -113,7 +113,7 @@
 /* ---------- ALERT, MODAL, FORM ---------- */
 .success{background:var(--accent-green);color:#fff;padding:12px 18px;border-radius:8px;margin-bottom:22px;box-shadow:0 4px 10px rgba(0,0,0,.05);}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;justify-content:center;align-items:center;z-index:1000;}
-.modal{background:var(--bg-card);padding:28px 32px;border-radius:14px;width:440px;max-width:96%;box-shadow:0 12px 28px rgba(0,0,0,.12);}
+.modal{background:var(--bg-card);padding:28px 32px;border-radius:14px;width:440px;max-width:96%;box-shadow:0 12px 28px rgba(0,0,0,.12); padding-right: 60px;}
 .modal h2{margin:0 0 22px;font-size:1.3rem;color:var(--accent-blue);}
 .field-group{display:flex;flex-direction:column;margin-bottom:18px;}
 .field-group label{font-weight:600;margin-bottom:8px;color:var(--text-main);}
@@ -132,22 +132,14 @@
 }
 
 
-/* ---------- PIE CHART  ---------- */
-.chart-card{
-  background:var(--bg-card);
-  border-radius:20px;
-  padding:28px 28px;
-  margin-bottom:32px;
-  box-shadow:0 12px 24px rgba(0,0,0,.06);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  width: 450px;
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+  margin: 1.5rem 0 2rem;
 }
-.chart-card h4{
-  margin:0 0 14px;
-  font-size:1.1rem;
-  font-weight:600;
-  color:var(--text-main);
-  
+.content {
+  flex: 1 1 auto;   /* igual que antes, pero explícito           */
+  min-width: 0;     /* <-- permite al flexbox encogerla         */
+  overflow-x: hidden;  /* asegura que nada se asome horizontalmente */
 }

@@ -137,7 +137,7 @@ export default function DashboardPage() {
       await loadDocuments();
       closeModal();
       setSuccess("El documento se subió de manera exitosa.");
-      setTimeout(() => setSuccess(""), 10000000);
+      setTimeout(() => setSuccess(""), 5000);
     } catch (err) {
       console.error("Upload error:", err.response || err);
       setError(err.response?.data?.error || "Error al subir documento.");

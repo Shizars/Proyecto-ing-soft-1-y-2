@@ -1,50 +1,68 @@
 import "./App.css";
 import Header from "./componentes/Header";
 import Footer from "./componentes/Footer";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AboutPage from "./pages/AboutPage";
-import DashboardPage from "./pages/DashboardPage"; // ejemplo de ruta privada
-import PrivateRoute from "./componentes/PrivateRoute"; // el wrapper que creaste
+import DashboardPage from "./pages/DashboardPage";
+import PrivateRoute from "./componentes/PrivateRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
-// …imports
-function App() {
+/* ---------- envoltorio que usa useLocation ---------- */
+function AppInner() {
+  const { pathname } = useLocation();
+
+  /* Oculta footer en todas las rutas privadas */
+  const hideFooter = pathname.startsWith("/dashboard");
+
+  return (
+    <div className="App">
+      <Header />
+
+      {/* contenedor flexible */}
+      <main className="App-content">
+        <Routes>
+          {/* Públicas */}
+          <Route path="/registro" element={<RegisterPage />} />
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/proyecto" element={<AboutPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route
+            path="/reset-password/:token"
+            element={<ResetPasswordPage />}
+          />
+
+          {/* Privadas */}
+          <Route
+            path="/dashboard/*"
+            element={
+              <PrivateRoute>
+                <DashboardPage />
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </main>
+
+      {/* se renderiza solo si NO estamos en dashboard */}
+      {!hideFooter && <Footer />}
+    </div>
+  );
+}
+
+/* ---------- export principal ---------- */
+export default function App() {
   return (
     <Router>
-      <div className="App">
-        <Header />
-
-        {/* NUEVO contenedor flexible */}
-        <main className="App-content">
-          <Routes>
-            {/* Públicas */}
-            <Route path="/registro" element={<RegisterPage />} />
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/proyecto" element={<AboutPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route
-              path="/reset-password/:token"
-              element={<ResetPasswordPage />}
-            />
-
-            {/* Privadas */}
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <DashboardPage />
-                </PrivateRoute>
-              }
-            />
-          </Routes>
-        </main>
-
-        <Footer />
-      </div>
+      <AppInner />
     </Router>
   );
 }
-export default App;
