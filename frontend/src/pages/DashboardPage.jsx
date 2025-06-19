@@ -6,6 +6,8 @@ import CategoryFilterModal from "../componentes/CategoryFilterModal";
 import "./DashboardPage.css";
 import CategoryPieChart from "../componentes/CategoryPieChart";
 import SessionTimer from "../componentes/SessionTimer";
+import logoCdn from "../img/cdn_docs.png"; // ← nuevo
+
 export default function DashboardPage() {
   /* ---------- estados ---------- */
   const [menuOpen, setMenuOpen] = useState(true);
@@ -188,7 +190,11 @@ export default function DashboardPage() {
       {/* ===== SIDEBAR ===== */}
       <aside className={menuOpen ? "sidebar open" : "sidebar"}>
         <div className="sidebar-brand">
-          <span className="brand-name">Sistema de gestión documental</span>
+          <img
+            src={logoCdn}
+            alt="Fundación Ciudad del Niño"
+            className="sidebar-logo"
+          />
         </div>
 
         <div className="sidebar-profile">

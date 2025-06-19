@@ -184,3 +184,18 @@
   font-size:.9rem;
   box-shadow:0 2px 6px rgba(0,0,0,.2);
 }
+:root {  --bg-sidebar: var(--brand-dark); }
+.dark  {  --bg-sidebar: var(--brand-dark-hover); } 
+
+/* ---------- LOGO EN SIDEBAR ---------- */
+.sidebar-logo{
+  width: 140px;         /* tamaño legible cuando el menú está abierto  */
+  height: auto;
+  margin-bottom: 32px;  /* separa el logo del avatar                   */
+}
+
+/* cuando el sidebar está colapsado, usa un logo compacto */
+.sidebar:not(.open) .sidebar-logo{
+  width: 46px;
+  margin-bottom: 24px;
+}

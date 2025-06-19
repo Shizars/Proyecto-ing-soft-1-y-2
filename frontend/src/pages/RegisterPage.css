@@ -139,6 +139,15 @@
 }
 .auth-nav a:hover { opacity: 0.75; }
 
+
+.auth-form .btn {
+  width: 180px;        
+  padding: 10px 0;     
+  font-size: 0.95rem;  
+  align-self: center;  
+}
+
+
 /* ========= RESPONSIVE ========= */
 @media (max-width: 900px) {
   .register-page     { flex-direction: column; }
