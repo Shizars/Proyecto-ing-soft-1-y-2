@@ -56,7 +56,7 @@ export default function DashboardPage() {
   };
 
   /* ---------- helpers ---------- */
-  const toggleMenu = () => setMenuOpen(!menuOpen);
+
   const openModal = () => setModalOpen(true);
   const closeModal = () => {
     setFormData({
@@ -93,25 +93,35 @@ export default function DashboardPage() {
   };
 
   /* ---------- inputs ---------- */
+  /* ---------- inputs ---------- */
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+
     if (name === "file") {
       const file = files[0];
       if (file) {
+        /* ←← NUEVO — límites de tamaño */
+        const MAX_MB = 10;
+        const MAX_BYTES = MAX_MB * 1024 * 1024;
+        if (file.size > MAX_BYTES) {
+          setError(`Tamaño máximo permitido: ${MAX_MB} MB.`);
+          return;
+        }
+
         const allowed = ["pdf", "doc", "docx", "xlsx"];
         const ext = file.name.split(".").pop().toLowerCase();
         if (!allowed.includes(ext)) {
           setError("Formato no permitido. Solo PDF, DOC, DOCX, XLSX.");
           return;
         }
+
         setFormData((p) => ({ ...p, file }));
-        setError("");
+        setError(""); // limpia cualquier error previo
       }
     } else {
       setFormData((p) => ({ ...p, [name]: value }));
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.file) {
@@ -190,10 +200,6 @@ export default function DashboardPage() {
           />
           <span>{user?.nombre_usuario || user?.email}</span>
         </div>
-
-        <button className="toggle-btn" onClick={toggleMenu}>
-          ☰
-        </button>
 
         <nav className="menu-items">
           <button onClick={openModal}>
