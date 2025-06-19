@@ -143,3 +143,31 @@
   min-width: 0;     /* <-- permite al flexbox encogerla         */
   overflow-x: hidden;  /* asegura que nada se asome horizontalmente */
 }
+
+/* ========= INPUTS EN FORMULARIOS ========= */
+.field-group input {
+  background: var(--bg-card);   /* blanco en claro, gris-azulado en oscuro  */
+  color: var(--text-main);      /* #16242f en claro, #eaf1f7 en oscuro      */
+  border: 1px solid #d1d5db;    /* borde por defecto en claro               */
+}
+
+.field-group input::placeholder {
+  color: var(--text-muted);     /* gris medio – suficiente contraste        */
+}
+
+/* ----- modo oscuro: fondo + borde específicos ----- */
+.dark .field-group input {
+  background: #1f2937;          /* match cards/backdrop                     */
+  border-color: #374151;        /* borde gris-azulado                       */
+}
+
+.dark .field-group input::placeholder {
+  color: #64748b;               /* placeholder un poco más claro            */
+}
+
+/* ----- feedback de enfoque consistente ----- */
+.field-group input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(72, 164, 224, .35); /* celeste institucional  */
+  border-color: var(--accent-blue);
+}

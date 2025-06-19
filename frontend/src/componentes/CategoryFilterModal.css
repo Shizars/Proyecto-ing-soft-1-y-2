@@ -1,37 +1,106 @@
+/* ===== Overlay semitransparente ===== */
 .cat-modal-overlay {
-  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55);
-  display: flex; justify-content: center; align-items: center; z-index: 1000;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1200;
 }
 
+/* ===== Ventana modal ===== */
 .cat-modal {
-  background: #fff; width: 420px; max-width: 90%;
-  padding: 28px 26px; border-radius: 12px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  width: 460px;
+  max-width: 95%;
+  background: var(--bg-card);   /* se adapta al modo claro / oscuro */
+  color: var(--text-main);
+  border-radius: 18px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2);
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
 }
 
+/* ===== Cabecera ===== */
 .cat-modal-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
 }
+
+.cat-modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
 .cat-close {
-  background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #555;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--text-main);
+  opacity: 0.7;
 }
 
-.cat-subtitle { margin-bottom: 12px; color: #185d8c; }
+.cat-close:hover {
+  opacity: 1;
+}
 
+/* ===== Subtítulo ===== */
+.cat-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent-blue);
+}
+
+/* ===== Lista de categorías ===== */
 .cat-list {
-  border: 2px solid #ddd; border-radius: 8px; padding: 18px 14px;
-  display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  max-height: 240px;
+  overflow-y: auto;
 }
-.cat-item { display: flex; align-items: center; gap: 10px; font-size: 1rem; }
 
-.cat-actions { display: flex; justify-content: flex-end; gap: 12px; }
-.cat-save {
-  background: #179c5a; color: #fff; padding: 10px 20px; border: none;
-  border-radius: 6px; cursor: pointer;
+.dark .cat-list {
+  border-color: #374151;
 }
+
+/* checkboxes alineados */
+.cat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.95rem;
+}
+
+/* ===== Botones de acción ===== */
+.cat-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cat-save,
 .cat-cancel {
-  background: #c0392b; color: #fff; padding: 10px 18px; border: none;
-  border-radius: 6px; cursor: pointer;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: #fff;
 }
-.cat-save:hover, .cat-cancel:hover { opacity: 0.9; }
+
+.cat-save   { background: var(--accent-green); }
+.cat-cancel { background: #ef4444; }
+
+.cat-save:hover,
+.cat-cancel:hover { opacity: 0.85; }
