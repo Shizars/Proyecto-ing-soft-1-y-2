@@ -3,8 +3,6 @@ from backend.extensions import db
 
 # ---------------------------------------------------------------------------
 # Tabla puente N-N documento_tags
-# (si ya la tienes declarada en models/document.py, importa esa misma
-#  instancia; aquí la dejamos para que sea autocontenida)
 # ---------------------------------------------------------------------------
 document_tags = db.Table(
     "document_tags",
