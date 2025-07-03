@@ -1,27 +1,9 @@
-# backend/models/tag.py
 from backend.extensions import db
-
-# ---------------------------------------------------------------------------
-# Tabla puente N-N documento_tags
-# ---------------------------------------------------------------------------
-document_tags = db.Table(
-    "document_tags",
-    db.Column("document_id", db.Integer, db.ForeignKey(
-        "documents.id"), primary_key=True),
-    db.Column("tag_id",       db.Integer, db.ForeignKey(
-        "tags.id"),      primary_key=True)
-)
-
-# ---------------------------------------------------------------------------
-# Modelo TAG
-# ---------------------------------------------------------------------------
+from .document_tags import document_tags
 
 
 class Tag(db.Model):
-    """
-    Catálogo de etiquetas (keywords) que se pueden asignar a uno o más
-    documentos para facilitar la búsqueda temática.
-    """
+    """Catálogo de etiquetas asignables a uno o más documentos."""
     __tablename__ = "tags"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -31,19 +13,19 @@ class Tag(db.Model):
     documents = db.relationship(
         "Document",
         secondary=document_tags,
-        back_populates="tags"
+        back_populates="tags",
+        cascade="all, delete",
+        passive_deletes=True,
+        lazy="dynamic",
     )
 
-    # --------- helpers opcionales ------------------------------------------
+    # ───────── helpers ─────────
     def __repr__(self) -> str:
         return f"<Tag {self.nombre}>"
 
     @classmethod
     def get_or_create(cls, nombre: str) -> "Tag":
-        """
-        Devuelve una etiqueta existente (case-insensitive) o la crea.
-        Útil cuando el usuario escribe libremente las palabras clave.
-        """
+        """Devuelve una etiqueta existente (case-insensitive) o la crea."""
         tag = cls.query.filter(db.func.lower(cls.nombre)
                                == nombre.lower()).first()
         if not tag:
