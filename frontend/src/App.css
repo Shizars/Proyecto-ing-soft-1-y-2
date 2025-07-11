@@ -22,9 +22,10 @@ body {
   min-height: 100vh;
 }
 
-/* NUEVO */
+
 .App-content {
   flex: 1;                      /* empuja el footer hacia abajo */
   display: flex;                /* opcional: si dentro quieres más flex */
   flex-direction: column;       /* mantiene layout vertical interno */
 }
+
