@@ -63,7 +63,9 @@ export default function LoginPage() {
                   type="email"
                   placeholder="Correo electrónico"
                 />
-                <ErrorMessage component="span" name="email" className="error" />
+                <div className="error-placeholder">
+                  <ErrorMessage component="div" name="email" />
+                </div>
               </div>
 
               <div className="field-group">
@@ -72,11 +74,9 @@ export default function LoginPage() {
                   type="password"
                   placeholder="Contraseña"
                 />
-                <ErrorMessage
-                  component="span"
-                  name="password"
-                  className="error"
-                />
+                <div className="error-placeholder">
+                  <ErrorMessage component="div" name="password" />
+                </div>
               </div>
 
               {apiError && <span className="error">{apiError}</span>}

@@ -76,7 +76,9 @@ export default function RegisterPage() {
             <Form className="auth-form">
               <div className="field-group">
                 <Field name="name" type="text" placeholder="Nombre completo" />
-                <ErrorMessage component="span" name="name" className="error" />
+                <div className="error-placeholder">
+                  <ErrorMessage component="div" name="name" />
+                </div>
               </div>
 
               <div className="field-group">
@@ -85,7 +87,9 @@ export default function RegisterPage() {
                   type="email"
                   placeholder="Correo electrónico"
                 />
-                <ErrorMessage component="span" name="email" className="error" />
+                <div className="error-placeholder">
+                  <ErrorMessage component="div" name="email" />
+                </div>
               </div>
 
               <div className="field-group">
@@ -94,11 +98,9 @@ export default function RegisterPage() {
                   type="password"
                   placeholder="Contraseña"
                 />
-                <ErrorMessage
-                  component="span"
-                  name="password"
-                  className="error"
-                />
+                <div className="error-placeholder">
+                  <ErrorMessage component="div" name="password" />
+                </div>
               </div>
 
               <div className="field-group">
@@ -107,11 +109,9 @@ export default function RegisterPage() {
                   type="password"
                   placeholder="Repetir contraseña"
                 />
-                <ErrorMessage
-                  component="span"
-                  name="confirm"
-                  className="error"
-                />
+                <div className="error-placeholder">
+                  <ErrorMessage component="div" name="confirm" />
+                </div>
               </div>
 
               {apiError && <span className="error">{apiError}</span>}

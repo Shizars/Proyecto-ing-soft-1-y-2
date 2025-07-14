@@ -95,16 +95,25 @@
 .search-box.wide .doc-search{width:320px;}
 
 /* ---------- SECTION DOCUMENTOS ---------- */
-.section-title{font-size:1.35rem;margin:0 0 20px;font-weight:600;}
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 40px 0 24px;
+  border-top: 1px solid #d1d5db;
+  padding-top: 24px;
+}
 .files-top{display:flex;align-items:center;gap:24px;margin-bottom:12px;}
 
 /* ---------- DOC LIST ---------- */
 .doc-list{display:flex;flex-direction:column;gap:16px;}
-.doc-card{display:grid;grid-template-columns:70px 2fr 1fr 1fr 1fr 140px;align-items:center;
+.doc-card{display:grid;grid-template-columns:70px 1fr 90px 120px 120px 140px;align-items:center;
           padding:18px 24px;background:var(--bg-card);border-radius:14px;
           box-shadow:0 6px 14px rgba(0,0,0,.04);gap:14px;}
 .doc-id{font-weight:700;color:var(--accent-blue);}
-.doc-format{font-weight:600;color:var(--text-muted);}
+.doc-format{font-weight:600;color:var(--text-muted);max-width: 100px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;}
 .doc-date,.doc-cat{color:var(--text-muted);}
 .doc-actions button{background:var(--accent-blue);border:none;color:#fff;padding:6px 10px;border-radius:6px;font-size:.9rem;margin-right:8px;cursor:pointer;}
 .doc-actions button:last-child{background:var(--accent-green);}
@@ -198,4 +207,45 @@
 .sidebar:not(.open) .sidebar-logo{
   width: 46px;
   margin-bottom: 24px;
+}
+
+
+.truncado {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.help-icon {
+  margin-left: 6px;
+  cursor: help;
+  font-size: 0.9rem;
+  border-radius: 50%;
+  padding: 0 5px;
+  transition: color 0.2s;
+}
+
+.doc-card.highlight {
+  border: 6px solid var(--accent-green);
+  animation: flash 1.2s ease-in-out;
+}
+
+@keyframes flash {
+  0%   { background-color: #d1fae5; }
+  100% { background-color: var(--bg-card); }
+}
+
+.user-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.user-email {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  word-break: break-word;
+  margin-top: -4px;
 }

@@ -157,3 +157,10 @@
   .register-left h1,
   .register-left p   { max-width: 600px; }
 }
+.error-placeholder {
+  height: 20px;
+  font-size: 0.85rem;
+  color: red;
+  text-align: left;
+  margin-top: 4px;
+}

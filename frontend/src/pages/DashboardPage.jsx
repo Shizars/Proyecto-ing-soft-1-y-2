@@ -16,6 +16,7 @@ export default function DashboardPage() {
   const [documents, setDocuments] = useState([]);
   const [filterCats, setFilterCats] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [lastUploadedId, setLastUploadedId] = useState(null);
 
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("theme") === "dark"
@@ -145,8 +146,10 @@ export default function DashboardPage() {
     }).forEach(([k, v]) => payload.append(k, v));
 
     try {
-      await api.post("/documents/upload", payload);
+      const response = await api.post("/documents/upload", payload);
+      setLastUploadedId(response.data.id); // guarda el ID recién subido
       await loadDocuments();
+
       closeModal();
       setSuccess("El documento se subió de manera exitosa.");
       setTimeout(() => setSuccess(""), 5000);
@@ -176,7 +179,11 @@ export default function DashboardPage() {
   };
 
   /* ---------- filtros ---------- */
-  const docsToShow = documents.filter(
+  const sortedDocuments = [...documents].sort(
+    (a, b) => new Date(b.fecha_subida) - new Date(a.fecha_subida)
+  );
+
+  const docsToShow = sortedDocuments.filter(
     (d) =>
       (filterCats.length === 0 || filterCats.includes(d.categoria)) &&
       (searchTerm.trim() === "" ||
@@ -204,7 +211,8 @@ export default function DashboardPage() {
             }`}
             alt="avatar"
           />
-          <span>{user?.nombre_usuario || user?.email}</span>
+          <span className="user-name">{user?.nombre_usuario}</span>
+          <span className="user-email">{user?.email}</span>
         </div>
 
         <nav className="menu-items">
@@ -284,9 +292,14 @@ export default function DashboardPage() {
 
           <div className="doc-list">
             {docsToShow.map((doc) => (
-              <div key={doc.id} className="doc-card">
+              <div
+                key={doc.id}
+                className={`doc-card ${
+                  doc.id === lastUploadedId ? "highlight" : ""
+                }`}
+              >
                 <div className="doc-id">#{doc.id}</div>
-                <div className="doc-title">
+                <div className="doc-title truncado" title={doc.titulo}>
                   <strong>{doc.titulo}</strong>
                 </div>
                 <div className="doc-format">
@@ -299,10 +312,16 @@ export default function DashboardPage() {
                 </div>
                 <div className="doc-cat">{doc.categoria}</div>
                 <div className="doc-actions">
-                  <button onClick={() => handleDownload(doc)}>
+                  <button
+                    onClick={() => handleDownload(doc)}
+                    title="Descargar documento"
+                  >
                     <i className="fas fa-download" />
                   </button>
-                  <button onClick={() => handlePreview(doc)}>
+                  <button
+                    onClick={() => handlePreview(doc)}
+                    title="Ver documento"
+                  >
                     <i className="fas fa-eye" />
                   </button>
                 </div>
@@ -370,7 +389,12 @@ export default function DashboardPage() {
               </div>
 
               <div className="field-group">
-                <label>Categoría</label>
+                <label
+                  className="help-icon"
+                  title="Ingrese el programa correspodiente al documento. Ej: PEE, REE, o AFT."
+                >
+                  Categoría
+                </label>
                 <input
                   name="category"
                   value={formData.category}
@@ -380,7 +404,12 @@ export default function DashboardPage() {
               </div>
 
               <div className="field-group">
-                <label>Región</label>
+                <label
+                  className="help-icon"
+                  title="Ingrese la región correspondiente al documento. Ej: Metropolitana, Valparaíso."
+                >
+                  Región
+                </label>
                 <input
                   name="region"
                   value={formData.region}

@@ -181,3 +181,10 @@
     margin-bottom: 32px;
   }
 }
+.error-placeholder {
+  height: 20px;
+  font-size: 0.85rem;
+  color: red;
+  text-align: left;
+  margin-top: 4px;
+}
