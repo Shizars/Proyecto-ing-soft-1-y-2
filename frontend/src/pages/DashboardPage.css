@@ -118,6 +118,10 @@
 .doc-actions button{background:var(--accent-blue);border:none;color:#fff;padding:6px 10px;border-radius:6px;font-size:.9rem;margin-right:8px;cursor:pointer;}
 .doc-actions button:last-child{background:var(--accent-green);}
 .doc-actions button:hover{opacity:.85;}
+/* ---- botón “Compartir” (enlace) ---- */
+.doc-actions button.share          { background: #6b7280; } /* gris neutro */
+.doc-actions button.share:hover    { opacity: .9; }
+
 
 /* ---------- ALERT, MODAL, FORM ---------- */
 .success{background:var(--accent-green);color:#fff;padding:12px 18px;border-radius:8px;margin-bottom:22px;box-shadow:0 4px 10px rgba(0,0,0,.05);}

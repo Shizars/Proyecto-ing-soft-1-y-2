@@ -2,7 +2,7 @@ from flask import Flask, send_from_directory
 from backend.config import Config
 from backend.extensions import db, ma, jwt, migrate, cors
 from backend.routes import all_blueprints
-
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 

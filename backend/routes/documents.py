@@ -4,6 +4,10 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from backend.services.document_service import save_file, UPLOAD_DIR
 from backend.schemas.document_schema import docs_schema
+from flask_jwt_extended import verify_jwt_in_request
+from datetime import datetime
+from backend.models.shared_link import SharedLink
+
 
 docs_bp = Blueprint("documents", __name__, url_prefix="/api/documents")
 
@@ -87,3 +91,58 @@ def download(doc_id):
         download_name=doc.titulo,
         mimetype="application/octet-stream",
     )
+
+
+def _build_public_url(doc):
+    relative = doc.file_path.replace("\\", "/")
+    if relative.startswith("uploads/"):
+        relative = relative[len("uploads/"):]
+    return request.url_root.rstrip("/") + "/uploads/" + relative
+
+
+# backend/routes/documents.py
+# …
+@docs_bp.get("/shared/<token>/url")                    # ⬅️ SIN @jwt_required
+def obtener_url_compartida(token):
+    # 1) intenta validar JWT si viene; si no, lo ignora
+    try:
+        verify_jwt_in_request(optional=True)
+    except Exception:
+        pass
+
+    # 2) resto de la lógica
+    link = SharedLink.query.filter_by(token=token).first()
+    if not link:
+        return {"error": "Enlace inexistente"}, 404
+    if link.expires_at < datetime.utcnow():
+        return {"error": "Enlace vencido"}, 410
+
+    from backend.models.document import Document
+    doc = Document.query.get(link.document_id)
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+
+    return {"url": _build_public_url(doc)}, 200
+
+
+@docs_bp.post("/<int:doc_id>/share")
+@jwt_required()
+def crear_link_compartido(doc_id):
+    from backend.models.document import Document
+
+    user_id = get_jwt_identity()
+    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+
+    # 1) crear registro de enlace compartido
+    link = SharedLink.new(document_id=doc.id, owner_id=user_id)
+
+    # 2) armar la URL pública que usará el frontend
+    full_url = (
+        request.url_root.rstrip("/") +
+        f"/api/documents/shared/{link.token}/url"
+    )
+
+    # 3) devolverla con la clave **url**
+    return {"url": full_url}, 201

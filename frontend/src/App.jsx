@@ -16,6 +16,8 @@ import PrivateRoute from "./componentes/PrivateRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
+import ShareViewer from "./pages/ShareViewer";
+
 /* ---------- envoltorio que usa useLocation ---------- */
 function AppInner() {
   const { pathname } = useLocation();
@@ -39,6 +41,7 @@ function AppInner() {
             path="/reset-password/:token"
             element={<ResetPasswordPage />}
           />
+          <Route path="/shared/:token" element={<ShareViewer />} />
 
           {/* Privadas */}
           <Route

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
 import { useAuth } from "../hooks/useAuth";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import PdfPreviewModal from "../componentes/PdfPreviewModal";
 import CategoryFilterModal from "../componentes/CategoryFilterModal";
 import "./DashboardPage.css";
@@ -178,6 +180,27 @@ export default function DashboardPage() {
     }
   };
 
+  /* ---------- compartir ---------- */
+
+  const handleShare = async (doc) => {
+    try {
+      const { data } = await api.post(`/documents/${doc.id}/share`);
+      const url = data.url; // <-- ya viene como url
+
+      // intentar copiar
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Enlace copiado al portapapeles");
+      } catch {
+        // No se pudo copiar, pero el enlace sí existe
+        toast.info(`Enlace listo para compartir:\n${url}`);
+      }
+    } catch (err) {
+      console.error("Share error:", err);
+      toast.error("No se pudo generar el enlace");
+    }
+  };
+
   /* ---------- filtros ---------- */
   const sortedDocuments = [...documents].sort(
     (a, b) => new Date(b.fecha_subida) - new Date(a.fecha_subida)
@@ -324,6 +347,12 @@ export default function DashboardPage() {
                   >
                     <i className="fas fa-eye" />
                   </button>
+                  <button
+                    onClick={() => handleShare(doc)}
+                    title="copiar enlace"
+                  >
+                    <i className="fas fa-link" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -431,6 +460,9 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Toast global */}
+      <ToastContainer position="bottom-right" autoClose={3000} />
     </div>
   );
 }
