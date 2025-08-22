@@ -8,7 +8,8 @@ import CategoryFilterModal from "../componentes/CategoryFilterModal";
 import "./DashboardPage.css";
 import CategoryPieChart from "../componentes/CategoryPieChart";
 import SessionTimer from "../componentes/SessionTimer";
-import logoCdn from "../img/cdn_docs.png"; // ← nuevo
+import logoCdn from "../img/cdn_docs.png";
+import TagSelector from "../componentes/TagSelector";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -334,6 +335,11 @@ export default function DashboardPage() {
                     : "—"}
                 </div>
                 <div className="doc-cat">{doc.categoria}</div>
+
+                <div className="doc-tags">
+                  {/* TagSelector necesita el documento y la función que refresca la lista */}
+                  <TagSelector doc={doc} refresh={loadDocuments} />
+                </div>
                 <div className="doc-actions">
                   <button
                     onClick={() => handleDownload(doc)}
@@ -349,7 +355,7 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => handleShare(doc)}
-                    title="copiar enlace"
+                    title="Copiar enlace"
                   >
                     <i className="fas fa-link" />
                   </button>

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-
+//api.js
 const api = axios.create({
   baseURL: "http://127.0.0.1:5000/api",
 });
@@ -25,4 +25,14 @@ api.interceptors.response.use(
   }
 );
 
+
+export const setTags = (docId, tags) =>
+  api.post(`/documents/${docId}/tags`, { tags });
+
+export const removeTag = (docId, tagId) =>
+  api.delete(`/documents/${docId}/tags/${tagId}`);
+
+
+
 export default api;
+

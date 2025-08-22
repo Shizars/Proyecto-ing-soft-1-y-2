@@ -2,6 +2,8 @@ from datetime import datetime
 from backend.extensions import db
 from .document_tags import document_tags
 
+# document.py
+
 
 class Document(db.Model):
     __tablename__ = "documents"

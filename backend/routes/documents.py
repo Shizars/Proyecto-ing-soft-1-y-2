@@ -1,3 +1,4 @@
+# routes / documents.py
 from pathlib import Path
 from flask import Blueprint, request, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -7,6 +8,12 @@ from backend.schemas.document_schema import docs_schema
 from flask_jwt_extended import verify_jwt_in_request
 from datetime import datetime
 from backend.models.shared_link import SharedLink
+
+from backend.services.tag_service import (
+    add_tags_to_document,
+    remove_tag_from_document,
+)
+from backend.schemas.document_schema import doc_schema
 
 
 docs_bp = Blueprint("documents", __name__, url_prefix="/api/documents")
@@ -146,3 +153,25 @@ def crear_link_compartido(doc_id):
 
     # 3) devolverla con la clave **url**
     return {"url": full_url}, 201
+
+
+@docs_bp.post("/<int:doc_id>/tags")
+@jwt_required()
+def set_tags(doc_id):
+    """
+    JSON esperado: {"tags": ["legal", "contrato"]}
+    Crea y/o vincula etiquetas al documento.
+    """
+    tag_names = request.json.get("tags", [])
+    doc = add_tags_to_document(doc_id, tag_names)
+    return doc_schema.dump(doc), 200
+
+
+@docs_bp.delete("/<int:doc_id>/tags/<int:tag_id>")
+@jwt_required()
+def delete_tag(doc_id, tag_id):
+    """
+    Desvincula una etiqueta concreta del documento.
+    """
+    doc = remove_tag_from_document(doc_id, tag_id)
+    return doc_schema.dump(doc), 200

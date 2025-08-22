@@ -106,9 +106,17 @@
 
 /* ---------- DOC LIST ---------- */
 .doc-list{display:flex;flex-direction:column;gap:16px;}
-.doc-card{display:grid;grid-template-columns:70px 1fr 90px 120px 120px 140px;align-items:center;
-          padding:18px 24px;background:var(--bg-card);border-radius:14px;
-          box-shadow:0 6px 14px rgba(0,0,0,.04);gap:14px;}
+.doc-card{
+  display: grid;
+  /* id  título  formato  fecha  categoría  ⬅︎ etiquetas ➡︎  acciones */
+  grid-template-columns: 50px 1fr 110px 120px 120px minmax(160px,1fr) 100px;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 24px;
+  background: var(--bg-card);
+  border-radius: 14px;
+  box-shadow: 0 6px 14px rgba(0,0,0,.04);
+}
 .doc-id{font-weight:700;color:var(--accent-blue);}
 .doc-format{font-weight:600;color:var(--text-muted);max-width: 100px;
   overflow: hidden;
@@ -252,4 +260,18 @@
   text-align: center;
   word-break: break-word;
   margin-top: -4px;
+}
+
+.doc-tags{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+/* Mantiene los tres botones pegados al borde derecho */
+.doc-actions{
+  display: flex;
+  gap: 6px;
+  justify-self: end;     /* ← clave para que no salten de línea */
 }

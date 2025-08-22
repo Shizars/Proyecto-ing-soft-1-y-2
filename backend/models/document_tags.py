@@ -1,5 +1,5 @@
 from backend.extensions import db
-
+# document_tags.py
 # Tabla puente (N-N) entre documentos y tags
 document_tags = db.Table(
     "document_tags",

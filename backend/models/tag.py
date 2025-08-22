@@ -1,6 +1,8 @@
 from backend.extensions import db
 from .document_tags import document_tags
 
+# tag.py
+
 
 class Tag(db.Model):
     """Catálogo de etiquetas asignables a uno o más documentos."""
