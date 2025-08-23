@@ -1,0 +1,59 @@
+
+-- Script SQL para crear tablas del sistema de gestion documental
+-- Compatible con PostgreSQL
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    nombre_usuario VARCHAR(80) UNIQUE NOT NULL,
+    email VARCHAR(120) UNIQUE NOT NULL,
+    password_hash VARCHAR(128) NOT NULL,
+    role VARCHAR(30) DEFAULT 'cliente',
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE tags (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE documents (
+    id SERIAL PRIMARY KEY,
+    titulo VARCHAR(200) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    categoria VARCHAR(50),
+    formato VARCHAR(10),
+    fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE document_tags (
+    document_id INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (document_id, tag_id)
+);
+
+
+
+
+OPCIONAL PARA PRUEBAS
+
+-- 02_insert_data.sql
+
+-- Insertar usuarios
+INSERT INTO users (nombre_usuario, email, password_hash, role)
+VALUES ('admin', 'admin@mail.com', 'hash_simulado', 'administrador');
+
+-- Insertar etiquetas
+INSERT INTO tags (nombre)
+VALUES ('Python'), ('Base de datos'), ('Web');
+
+-- Insertar documentos
+INSERT INTO documents (titulo, file_path, categoria, formato, owner_id)
+VALUES ('Manual Python', '/files/manual-python.pdf', 'programación', 'pdf', 1);
+
+-- Relacionar documento con etiquetas
+INSERT INTO document_tags (document_id, tag_id)
+VALUES (1, 1), (1, 2);
+
+
+
