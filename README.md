@@ -2,6 +2,7 @@
 Proyecto ingenieria de software para fundacion
 
 **Autores:**
+
 Matt Belizario | Matías Godoy | Cesar López | Daniel Paredes | Nicolas Sandoval | Marco Solar |
 
 **Profesor:**
