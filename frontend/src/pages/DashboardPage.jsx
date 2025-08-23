@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 import { ToastContainer, toast } from "react-toastify";
@@ -10,6 +11,7 @@ import CategoryPieChart from "../componentes/CategoryPieChart";
 import SessionTimer from "../componentes/SessionTimer";
 import logoCdn from "../img/cdn_docs.png";
 import TagSelector from "../componentes/TagSelector";
+import AuditForm from "../componentes/AuditForm";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -20,6 +22,34 @@ export default function DashboardPage() {
   const [filterCats, setFilterCats] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [lastUploadedId, setLastUploadedId] = useState(null);
+
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // Modal de auditoría controlado por la URL
+  const auditModalOpen = pathname.startsWith("/dashboard/auditorias/nueva");
+
+  // Bloquear scroll del fondo cuando el modal está abierto
+  useEffect(() => {
+    document.body.style.overflow = auditModalOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [auditModalOpen]);
+
+  // Cerrar modal y volver a /dashboard
+  const closeAudit = () => navigate("/dashboard");
+
+  // Cerrar con tecla ESC
+  useEffect(() => {
+    if (!auditModalOpen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") closeAudit();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [auditModalOpen]);
 
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("theme") === "dark"
@@ -41,8 +71,6 @@ export default function DashboardPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
 
-  const { user, logout } = useAuth();
-
   /* ---------- tema ---------- */
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
@@ -62,7 +90,6 @@ export default function DashboardPage() {
   };
 
   /* ---------- helpers ---------- */
-
   const openModal = () => setModalOpen(true);
   const closeModal = () => {
     setFormData({
@@ -81,7 +108,7 @@ export default function DashboardPage() {
   /* ---------- descarga ---------- */
   const handleDownload = async (doc) => {
     try {
-      alert("Iniciando descarga…"); // <- mensaje para el usuario
+      alert("Iniciando descarga…");
       const res = await api.get(`/documents/${doc.id}/download`, {
         responseType: "blob",
       });
@@ -99,14 +126,12 @@ export default function DashboardPage() {
   };
 
   /* ---------- inputs ---------- */
-  /* ---------- inputs ---------- */
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
     if (name === "file") {
       const file = files[0];
       if (file) {
-        /* ←← NUEVO — límites de tamaño */
         const MAX_MB = 10;
         const MAX_BYTES = MAX_MB * 1024 * 1024;
         if (file.size > MAX_BYTES) {
@@ -122,12 +147,13 @@ export default function DashboardPage() {
         }
 
         setFormData((p) => ({ ...p, file }));
-        setError(""); // limpia cualquier error previo
+        setError("");
       }
     } else {
       setFormData((p) => ({ ...p, [name]: value }));
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.file) {
@@ -150,7 +176,7 @@ export default function DashboardPage() {
 
     try {
       const response = await api.post("/documents/upload", payload);
-      setLastUploadedId(response.data.id); // guarda el ID recién subido
+      setLastUploadedId(response.data.id);
       await loadDocuments();
 
       closeModal();
@@ -182,18 +208,14 @@ export default function DashboardPage() {
   };
 
   /* ---------- compartir ---------- */
-
   const handleShare = async (doc) => {
     try {
       const { data } = await api.post(`/documents/${doc.id}/share`);
-      const url = data.url; // <-- ya viene como url
-
-      // intentar copiar
+      const url = data.url;
       try {
         await navigator.clipboard.writeText(url);
         toast.success("Enlace copiado al portapapeles");
       } catch {
-        // No se pudo copiar, pero el enlace sí existe
         toast.info(`Enlace listo para compartir:\n${url}`);
       }
     } catch (err) {
@@ -235,14 +257,19 @@ export default function DashboardPage() {
             }`}
             alt="avatar"
           />
-          <span className="user-name">{user?.nombre_usuario}</span>
-          <span className="user-email">{user?.email}</span>
         </div>
+        <span className="user-name">{user?.nombre_usuario}</span>
+        <span className="user-email">{user?.email}</span>
 
         <nav className="menu-items">
           <button onClick={openModal}>
             <i className="fas fa-file-upload" />
             <span>Agregar documento</span>
+          </button>
+
+          <button onClick={() => navigate("/dashboard/auditorias/nueva")}>
+            <i className="fas fa-clipboard-check" />
+            <span>Nueva auditoría</span>
           </button>
 
           <button onClick={() => setCatOpen(true)}>
@@ -292,11 +319,11 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
         <CategoryPieChart documents={documents} />
 
         {/* ---- sección documentos ---- */}
         <section className="files-section">
-          {/* --- buscador antes del título --- */}
           <div className="files-top">
             <div className="search-box wide">
               <i className="fas fa-search" />
@@ -337,7 +364,6 @@ export default function DashboardPage() {
                 <div className="doc-cat">{doc.categoria}</div>
 
                 <div className="doc-tags">
-                  {/* TagSelector necesita el documento y la función que refresca la lista */}
                   <TagSelector doc={doc} refresh={loadDocuments} />
                 </div>
                 <div className="doc-actions">
@@ -382,6 +408,23 @@ export default function DashboardPage() {
         onClose={() => setCatOpen(false)}
       />
 
+      {/* Modal de Auditoría */}
+      {auditModalOpen && (
+        <div className="modal-overlay" onClick={closeAudit}>
+          <div className="modal modal-xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="modal-close"
+              onClick={closeAudit}
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+            <AuditForm onSaved={closeAudit} onClose={closeAudit} />
+          </div>
+        </div>
+      )}
+
+      {/* Modal subir documento */}
       {modalOpen && (
         <div className="modal-overlay">
           <div className="modal">

@@ -17,6 +17,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
 import ShareViewer from "./pages/ShareViewer";
+import AuditForm from "./componentes/AuditForm";
 
 /* ---------- envoltorio que usa useLocation ---------- */
 function AppInner() {
@@ -24,6 +25,7 @@ function AppInner() {
 
   /* Oculta footer en todas las rutas privadas */
   const hideFooter = pathname.startsWith("/dashboard");
+  const hideHeader = pathname.startsWith("/dashboard/auditorias");
 
   return (
     <div className="App">
@@ -52,6 +54,8 @@ function AppInner() {
               </PrivateRoute>
             }
           />
+
+          {/* 🔐 Ruta privada para crear una Auditoría */}
         </Routes>
       </main>
 

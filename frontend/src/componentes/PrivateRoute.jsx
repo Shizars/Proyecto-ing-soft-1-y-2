@@ -9,5 +9,5 @@ export default function PrivateRoute({ children }) {
     return null;
   }
 
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  return isAuthenticated ? children : <Navigate to="/" replace />;
 }
