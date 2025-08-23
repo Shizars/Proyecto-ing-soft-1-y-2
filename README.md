@@ -6,4 +6,5 @@ Proyecto ingenieria de software para fundacion
 Matt Belizario | Matías Godoy | Cesar López | Daniel Paredes | Nicolas Sandoval | Marco Solar |
 
 **Profesor:**
+
 Paulo Quinsacara Jofré
