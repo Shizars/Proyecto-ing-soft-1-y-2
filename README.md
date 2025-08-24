@@ -9,7 +9,3 @@ Matt Belizario | Matías Godoy | César López | Daniel Paredes | Nicolas Sandov
 **Profesor :**
 
 Paulo Quinsacara Jofré
-
-## imagen prueba
-
-![imagen windows]([https://mi-sitio.com/imagen.png](https://i.blogs.es/c28d15/windows-7/1366_2000.jpg))
