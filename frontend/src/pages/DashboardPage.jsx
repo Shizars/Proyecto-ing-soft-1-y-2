@@ -12,6 +12,7 @@ import SessionTimer from "../componentes/SessionTimer";
 import logoCdn from "../img/cdn_docs.png";
 import TagSelector from "../componentes/TagSelector";
 import AuditForm from "../componentes/AuditForm";
+import AuditFormV2 from "../componentes/AuditFormV2";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -419,7 +420,7 @@ export default function DashboardPage() {
             >
               ×
             </button>
-            <AuditForm onSaved={closeAudit} onClose={closeAudit} />
+            <AuditFormV2 onSaved={closeAudit} onClose={closeAudit} />
           </div>
         </div>
       )}
