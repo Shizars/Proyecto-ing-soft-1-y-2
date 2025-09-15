@@ -15,6 +15,7 @@ import TagSelector from "../componentes/TagSelector";
 import AuditFormV2 from "../componentes/AuditFormV2";
 import ProgramResponsesWidget from "../componentes/ProgramResponsesWidget";
 import ProgramRankingWidget from "../componentes/ProgamRankingWidget";
+import CategoryPieCard from "../componentes/CategoryPieChart";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */

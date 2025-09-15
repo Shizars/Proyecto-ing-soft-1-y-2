@@ -1,71 +1,90 @@
-/* =============== TARJETA BASE =============== */
+/* ====== Card base ====== */
 .stat-card {
+  --bg-card: #ffffff;
+  --text-main: #111827;
+  --line: #e5e7eb;
+
   background: var(--bg-card);
   color: var(--text-main);
-  border-radius: 22px;
-  padding: 1.4rem 1.6rem;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, .05);
+  border-radius: 18px;
+  padding: 1rem 1.2rem;       /* reducido */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .05);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.8rem;                /* menos espacio entre elementos */
+  border: 1px solid var(--line);
+  max-width: 380px;           /* no se expande demasiado */
+}
+.dark .stat-card {
+  --bg-card: #0f1521;
+  --text-main: #e5e7eb;
+  --line: #374151;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
 }
 
 .stat-card h4 {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   margin: 0;
-  text-align: left;
 }
 
-/* =============== LAYOUT GRÁFICO =============== */
+/* ====== Layout gráfico ====== */
 .pie-card .pie-body {
   display: flex;
   align-items: center;
-  gap: 1.4rem;
+  gap: 1rem;
+}
+.pie-card .pie-canvas {
+  flex: 0 0 180px;          /* más compacto */
+  max-width: 180px;
+  height: 180px;
 }
 
+/* Leyenda */
 .pie-legend {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: .45rem;
-  font-size: .9rem;
+  gap: 0.35rem;              /* menos separación */
+  font-size: 0.8rem;         /* más compacto */
 }
-
 .pie-legend li {
   display: grid;
-  grid-template-columns: 12px auto auto auto;
+  grid-template-columns: 10px auto auto auto;
   align-items: center;
-  gap: .4rem;
+  gap: 0.3rem;
 }
-
-.dot {
-  width: 12px;
-  height: 12px;
+.pie-legend .dot {
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  display: inline-block;
 }
-
-.count {
+.pie-legend .count {
   font-weight: 600;
-  margin-left: .3rem;
+  margin-left: 0.2rem;
+}
+.pie-legend .percent {
+  margin-left: 0.2rem;
+  opacity: 0.7;
+  font-size: 0.75rem;
 }
 
-.percent {
-  margin-left: .25rem;
-  opacity: .75;
-}
-
-/* ========== RESPONSIVE – APILA EN MÓVIL ========== */
+/* ====== Responsive ====== */
 @media (max-width: 640px) {
   .pie-card .pie-body {
     flex-direction: column;
+    align-items: center;
+  }
+  .pie-card .pie-canvas {
+    max-width: 160px;
+    height: 160px;
   }
   .pie-legend {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
+    font-size: 0.75rem;
   }
 }

@@ -275,3 +275,72 @@
   gap: 6px;
   justify-self: end;     /* ← clave para que no salten de línea */
 }
+/* === Overlay que tapa TODO y queda por encima del header === */
+.modal-overlay {
+  position: fixed;        /* cubrir viewport completo */
+  inset: 0;               /* top:0; right:0; bottom:0; left:0 */
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);         /* opcional */
+  z-index: 10000;                     /* MÁS alto que el header */
+  display: flex;
+  align-items: flex-start;            /* modal arriba con margen */
+  justify-content: center;
+  padding: 32px 16px;                 /* aire en bordes */
+  overflow: auto;                     /* scroll si el modal es alto */
+}
+
+/* === Caja del modal === */
+.modal {
+  position: relative;
+  background: #fff;
+  color: #111827;
+  width: min(920px, 95vw);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+  z-index: 10001;                     /* por encima del overlay */
+  max-height: 90vh;                   /* NO más alta que la ventana */
+  overflow: auto;                     /* scroll interno del contenido */
+  padding: 20px;
+}
+
+/* Variante XL si la usas */
+.modal.modal-xl {
+  width: min(1000px, 96vw);
+}
+
+/* Botón cerrar */
+.modal-close {
+  position: sticky;       /* se queda visible arriba al hacer scroll */
+  top: 0;
+  margin-left: auto;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 10002;
+}
+.modal-close:hover { background: #e5e7eb; }
+
+/* Modo oscuro opcional */
+.dark .modal { background: #0f1521; color: #e5e7eb; }
+.dark .modal-close { background: #1f2937; border-color: #374151; }
+.dark .modal-close:hover { background: #374151; }
+
+.dark {
+  --bg-main:    #0f1521;   /* mismo que el modal */
+  --bg-card:    #0f1521;   /* tarjetas y modales comparten fondo */
+  --bg-sidebar: #133f66;
+
+  --text-main:  #eaf1f7;
+  --text-muted: #94a3b4;
+
+  --accent-blue:   #4ab0ff;
+  --accent-green:  #1fcb7d;
+  --accent-purple: #22709a;
+}
