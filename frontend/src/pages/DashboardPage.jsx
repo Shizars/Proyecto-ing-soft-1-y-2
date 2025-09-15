@@ -11,8 +11,10 @@ import CategoryPieChart from "../componentes/CategoryPieChart";
 import SessionTimer from "../componentes/SessionTimer";
 import logoCdn from "../img/cdn_docs.png";
 import TagSelector from "../componentes/TagSelector";
-import AuditForm from "../componentes/AuditForm";
+
 import AuditFormV2 from "../componentes/AuditFormV2";
+import ProgramResponsesWidget from "../componentes/ProgramResponsesWidget";
+import ProgramRankingWidget from "../componentes/ProgamRankingWidget";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -322,6 +324,24 @@ export default function DashboardPage() {
         </div>
 
         <CategoryPieChart documents={documents} />
+
+        <div
+          className="widgets-row"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr", // 50/50 fijo
+            gap: "16px",
+            alignItems: "stretch",
+            width: "100%",
+          }}
+        >
+          <div style={{ maxWidth: "none" }}>
+            <ProgramResponsesWidget refreshMs={3000} />
+          </div>
+          <div style={{ maxWidth: "none" }}>
+            <ProgramRankingWidget refreshMs={3000} />
+          </div>
+        </div>
 
         {/* ---- sección documentos ---- */}
         <section className="files-section">

@@ -16,6 +16,8 @@ export const rptExistenciaGlobalV2 = () =>
   api.get("/v2/reports/existencia-global");
 export const rptPRTV2 = () =>
   api.get("/v2/reports/pii-registro-tribunal");
+export const rptRankingProgramasV2 = (promedio = false) =>
+  api.get(`/v2/reports/ranking-programas?promedio=${promedio}`);
 
 // Export
 export const exportAuditsCsvV2 = () =>
