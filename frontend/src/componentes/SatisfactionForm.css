@@ -1,0 +1,138 @@
+/* ====== Card base ====== */
+.satisf-form {
+  --bg: #ffffff;
+  --bg-section: #fafafa;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --brand: #6c63ff;
+  --ring: rgba(108,99,255,.35);
+
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(17,24,39,.10);
+  padding: 24px;
+  width: 100%;
+  max-width: 880px;
+}
+
+/* Dark */
+.dark .satisf-form {
+  --bg: #0f1521;
+  --bg-section: #111827;
+  --ink: #e5e7eb;
+  --muted: #9ca3af;
+  --brand: #8b8cfb;
+  --ring: rgba(139,140,251,.35);
+}
+
+.satisf-form h2 { margin: 0 0 14px; font-size: 22px; font-weight: 800; }
+.satisf-form h3 { margin: 18px 0 10px; font-size: 15px; font-weight: 700; color: #4338ca; background: #ede9fe; padding: 8px 10px; border-radius: 8px; }
+.dark .satisf-form h3 { color: #c7c9ff; background: #1f1b3a; }
+
+.satisf-form label { font-weight: 600; margin: 10px 0 6px; display: block; }
+
+.satisf-form input[type="text"],
+.satisf-form input[type="date"],
+.satisf-form select,
+.satisf-form textarea {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+  transition: border .15s, box-shadow .15s;
+}
+.dark .satisf-form input[type="text"],
+.dark .satisf-form input[type="date"],
+.dark .satisf-form select,
+.dark .satisf-form textarea {
+  border-color: #374151;
+}
+.satisf-form textarea { min-height: 90px; resize: vertical; }
+
+.satisf-form input:focus,
+.satisf-form select:focus,
+.satisf-form textarea:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.satisf-form .grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 760px) {
+  .satisf-form .grid-2 { grid-template-columns: 1fr; }
+}
+
+/* Radios tipo chip */
+.satisf-form .radio-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-section);
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+.dark .satisf-form .radio-row { border-color: #374151; }
+
+.satisf-form .radio-row > span {
+  font-weight: 600;
+  min-width: 240px;
+}
+.satisf-form .radio-row input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.satisf-form .chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid #e5e7eb; border-radius: 999px; padding: 8px 12px;
+  color: var(--muted); cursor: pointer; user-select: none; background: #fff;
+  transition: all .15s;
+}
+.dark .satisf-form .chip { background: var(--bg); border-color: #374151; }
+.satisf-form .chip:hover { border-color: var(--brand); }
+.satisf-form .chip:has(input:checked) {
+  color: #111827; border-color: var(--brand); background: #f5f3ff; box-shadow: 0 0 0 3px var(--ring);
+}
+.dark .satisf-form .chip:has(input:checked) { color: var(--ink); background: #1f1b3a; }
+
+/* Selección múltiple */
+.satisf-form .section-card {
+  background: var(--bg-section);
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+.dark .satisf-form .section-card { border-color: #374151; }
+.satisf-form .check-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px; border-radius: 8px; transition: background .12s, border-color .12s;
+  border: 1px solid transparent;
+}
+.satisf-form .check-item.on { background: #eef2ff; border-color: #c7d2fe; }
+.dark .satisf-form .check-item.on { background: #171b31; border-color: #2a2f49; }
+
+.satisf-form .actions { display: flex; gap: 10px; margin-top: 16px; }
+.satisf-form .actions button {
+  border: none; padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer;
+}
+.satisf-form .actions button[type="submit"] {
+  background: var(--brand); color: #fff; box-shadow: 0 6px 16px rgba(108,99,255,.25);
+}
+.satisf-form .actions button[type="button"] {
+  background: #f3f4f6; color: #111827;
+}
+.dark .satisf-form .actions button[type="button"] { background: #1f2937; color: #f9fafb; }
+
+.satisf-form .error { color: #ef4444; font-size: 13px; margin-top: 4px; }
+.satisf-form hr { border: none; height: 1px; background: #eef2f7; margin: 16px 0; }
+.dark .satisf-form hr { background: #374151; }

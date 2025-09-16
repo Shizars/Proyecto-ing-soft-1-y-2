@@ -15,8 +15,7 @@ import TagSelector from "../componentes/TagSelector";
 import AuditFormV2 from "../componentes/AuditFormV2";
 import ProgramResponsesWidget from "../componentes/ProgramResponsesWidget";
 import ProgramRankingWidget from "../componentes/ProgamRankingWidget";
-import CategoryPieCard from "../componentes/CategoryPieChart";
-
+import SatisfactionForm from "../componentes/SatisfactionForm";
 export default function DashboardPage() {
   /* ---------- estados ---------- */
   const [menuOpen, setMenuOpen] = useState(true);
@@ -26,6 +25,7 @@ export default function DashboardPage() {
   const [filterCats, setFilterCats] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [lastUploadedId, setLastUploadedId] = useState(null);
+  const [satisfOpen, setSatisfOpen] = useState(false);
 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -33,6 +33,8 @@ export default function DashboardPage() {
 
   // Modal de auditoría controlado por la URL
   const auditModalOpen = pathname.startsWith("/dashboard/auditorias/nueva");
+  // Programas (puedes traerlos del backend o definirlos aquí)
+  const PROGRAMAS = ["DAM", "PEE", "PIE", "PPF", "PRM", "PSA", "PLA", "PLE"];
 
   // Bloquear scroll del fondo cuando el modal está abierto
   useEffect(() => {
@@ -276,6 +278,11 @@ export default function DashboardPage() {
             <span>Nueva auditoría</span>
           </button>
 
+          <button onClick={() => setSatisfOpen(true)}>
+            <i className="fas fa-face-smile" />
+            <span>Nueva satisfacción</span>
+          </button>
+
           <button onClick={() => setCatOpen(true)}>
             <i className="fas fa-filter" />
             <span>Categorías</span>
@@ -442,6 +449,24 @@ export default function DashboardPage() {
               ×
             </button>
             <AuditFormV2 onSaved={closeAudit} onClose={closeAudit} />
+          </div>
+        </div>
+      )}
+      {satisfOpen && (
+        <div className="modal-overlay" onClick={() => setSatisfOpen(false)}>
+          <div className="modal modal-xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="modal-close"
+              onClick={() => setSatisfOpen(false)}
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+            <SatisfactionForm
+              programas={PROGRAMAS}
+              onSaved={() => setSatisfOpen(false)}
+              onClose={() => setSatisfOpen(false)}
+            />
           </div>
         </div>
       )}
