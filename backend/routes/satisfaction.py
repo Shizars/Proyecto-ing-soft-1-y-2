@@ -93,3 +93,63 @@ def report_overall():
         "pct_insatisfechos": round(pct_insat, 1),
         "threshold": thr
     }
+
+
+@bp.get("/reports/by-program-satisfaction")
+def report_by_program_satisfaction():
+    """
+    Retorna, por programa:
+      - total encuestas
+      - satisfechos (según umbral)
+      - % satisfechos
+    Regla (threshold): se considera satisfecho si puntaje_satisfaccion >= threshold (default=4 de 6).
+    Query params opcionales:
+      - threshold (int)
+      - min_n (int) -> filtra programas con al menos N encuestas (default 1)
+    """
+    try:
+        thr = int(request.args.get("threshold", 4))
+    except ValueError:
+        thr = 4
+    try:
+        min_n = int(request.args.get("min_n", 1))
+    except ValueError:
+        min_n = 1
+
+    sql = text("""
+        SELECT
+          programa,
+          COUNT(*) AS total,
+          SUM(
+            CASE WHEN (
+              (CASE WHEN lower(p1_trato)           LIKE 'satis%' THEN 1 ELSE 0 END) +
+              (CASE WHEN lower(p2_info)            LIKE 'satis%' THEN 1 ELSE 0 END) +
+              (CASE WHEN lower(p3_tiempo)          LIKE 'satis%' THEN 1 ELSE 0 END) +
+              (CASE WHEN lower(p4_participacion)   LIKE 'satis%' THEN 1 ELSE 0 END) +
+              (CASE WHEN lower(p5_resultados)      LIKE 'satis%' THEN 1 ELSE 0 END) +
+              (CASE WHEN lower(p6_infraestructura) LIKE 'satis%' THEN 1 ELSE 0 END)
+            ) >= :thr THEN 1 ELSE 0 END
+          ) AS satisfechos
+        FROM satisfaction_surveys
+        GROUP BY programa
+    """)
+    rows = db.session.execute(sql, {"thr": thr}).fetchall()
+
+    out = []
+    for programa, total, satisfechos in rows:
+        total = int(total or 0)
+        satisfechos = int(satisfechos or 0)
+        if total < min_n:
+            continue
+        pct = round((satisfechos / total * 100) if total else 0.0, 1)
+        out.append({
+            "programa": programa or "—",
+            "total": total,
+            "satisfechos": satisfechos,
+            "pct_satisfechos": pct,
+            "threshold": thr,
+        })
+
+    # orden por % desc por defecto
+    out.sort(key=lambda x: x["pct_satisfechos"], reverse=True)
+    return out

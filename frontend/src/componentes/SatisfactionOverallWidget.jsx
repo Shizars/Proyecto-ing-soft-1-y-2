@@ -43,7 +43,7 @@ export default function SatisfactionOverallWidget({
   return (
     <div className="stat-card donut-card">
       <div className="head">
-        <h4>Satisfacción Global NNA</h4>
+        <h4>Satisfacción Global : F-SGC-036</h4>
         <span className="badge">n={data.total}</span>
       </div>
 
@@ -88,7 +88,7 @@ export default function SatisfactionOverallWidget({
             <em>{data.pct_insatisfechos}%</em>
           </li>
           <li className="rule">
-            <span className="muted">Regla:</span>
+            <span className="muted">Regla</span>
             <em> ≥ {data.threshold} de 6 “Satisfecho(a)”</em>
           </li>
         </ul>

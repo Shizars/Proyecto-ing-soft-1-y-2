@@ -66,9 +66,7 @@ export default function ProgramRankingWidget({ refreshMs = 15000 }) {
   return (
     <div className={`prog-rank-widget ${open ? "open" : ""}`}>
       <div className="prw-head">
-        <span className="prw-title">
-          Ranking por Puntaje {useAvg ? "(Promedio)" : "(Suma)"}
-        </span>
+        <span className="prw-title">Ranking por Puntaje : F-SGC-033</span>
         <div className="prw-actions">
           {/* Toggle Suma/Promedio */}
           <button

@@ -6,3 +6,5 @@ export const rptSatisfactionByProgram = () => api.get("/satisfaction/reports/by-
 export const rptSatisfactionOverall = (params) =>
   api.get("/satisfaction/reports/overall", { params });
 
+export const rptSatisfactionByProgramPct = (params) =>
+  api.get("/satisfaction/reports/by-program-satisfaction", { params });

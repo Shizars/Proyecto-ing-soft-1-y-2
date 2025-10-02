@@ -52,7 +52,7 @@ export default function ProgramResponsesWidget({ refreshMs = 15000 }) {
   return (
     <div className={`prog-resp-widget ${open ? "open" : ""}`}>
       <div className="prw-head">
-        <span className="prw-title">Respuestas por Programa</span>
+        <span className="prw-title">Respuestas por Programa - F-SGC-033</span>
         <div className="prw-actions">
           <span className="prw-total" title="Total respuestas">
             Total global {total}

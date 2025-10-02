@@ -17,6 +17,7 @@ import ProgramResponsesWidget from "../componentes/ProgramResponsesWidget";
 import ProgramRankingWidget from "../componentes/ProgamRankingWidget";
 import SatisfactionForm from "../componentes/SatisfactionForm";
 import SatisfactionOverallWidget from "../componentes/SatisfactionOverallWidget";
+import SatisfactionByProgramWidget from "../componentes/SatisfactionByProgramWidget";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -353,6 +354,13 @@ export default function DashboardPage() {
           </div>
           <div>
             <SatisfactionOverallWidget refreshMs={4000} threshold={4} />
+          </div>
+          <div>
+            <SatisfactionByProgramWidget
+              refreshMs={5000}
+              threshold={4}
+              minN={1}
+            />
           </div>
         </div>
 
