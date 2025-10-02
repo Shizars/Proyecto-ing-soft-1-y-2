@@ -19,6 +19,11 @@ export const rptPRTV2 = () =>
 export const rptRankingProgramasV2 = (promedio = false) =>
   api.get(`/v2/reports/ranking-programas?promedio=${promedio}`);
 
+export const rptExistenciaGlobal = () => api.get("/v2/reports/existencia-global");
+
+
 // Export
 export const exportAuditsCsvV2 = () =>
   api.get("/v2/exports/audits.csv", { responseType: "blob" });
+
+

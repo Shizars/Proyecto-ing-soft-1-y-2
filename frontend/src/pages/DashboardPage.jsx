@@ -18,6 +18,7 @@ import ProgramRankingWidget from "../componentes/ProgamRankingWidget";
 import SatisfactionForm from "../componentes/SatisfactionForm";
 import SatisfactionOverallWidget from "../componentes/SatisfactionOverallWidget";
 import SatisfactionByProgramWidget from "../componentes/SatisfactionByProgramWidget";
+import ExistenciaWidget from "../componentes/ExistenciaWidget";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -361,6 +362,9 @@ export default function DashboardPage() {
               threshold={4}
               minN={1}
             />
+          </div>
+          <div style={{ maxWidth: "none" }}>
+            <ExistenciaWidget refreshMs={3000} />
           </div>
         </div>
 

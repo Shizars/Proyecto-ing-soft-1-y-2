@@ -1,4 +1,6 @@
 # backend/services/audit_v2_service.py
+from sqlalchemy import case, func, select
+from backend.models.audit_v2 import AuditV2, AuditV2Existence
 from sqlalchemy import select, func
 from backend.extensions import db
 from backend.models.audit_v2 import (
@@ -92,20 +94,51 @@ def ranking_programas(promedio=True):
 
 def existencia_global():
     items = [
-        "orden_ingreso",
-        "informe_derivacion",
-        "cert_nacimiento",
-        "carta_compromiso",
-        "ficha_ingreso",
-        "registro_actividades",
+        AuditV2Existence.orden_ingreso,
+        AuditV2Existence.informe_derivacion,
+        AuditV2Existence.cert_nacimiento,
+        AuditV2Existence.carta_compromiso,
+        AuditV2Existence.ficha_ingreso,
+        AuditV2Existence.registro_actividades,
     ]
-    out = {}
-    for it in items:
-        col = getattr(AuditV2Existence, it)
-        stmt = select(col, func.count().label("c")).group_by(col)
-        rows = db.session.execute(stmt).all()
-        out[it] = {str(k): int(v) for k, v in rows}
-    return out
+
+    # --------- Totales globales ---------
+    existente_case = [case((col == "SI", 1), else_=0) for col in items]
+    inexistente_case = [case((col == "NO", 1), else_=0) for col in items]
+
+    q_global = select(
+        func.sum(sum(existente_case)).label("existentes"),
+        func.sum(sum(inexistente_case)).label("inexistentes"),
+    )
+    total_global = db.session.execute(q_global).first()
+
+    global_data = {
+        "existentes": int(total_global.existentes or 0),
+        "inexistentes": int(total_global.inexistentes or 0),
+    }
+
+    # --------- Totales por programa ---------
+    q_programa = (
+        select(
+            AuditV2.programa,
+            func.sum(sum(existente_case)).label("existentes"),
+            func.sum(sum(inexistente_case)).label("inexistentes"),
+        )
+        .join(AuditV2Existence, AuditV2Existence.audit_id == AuditV2.id)
+        .group_by(AuditV2.programa)
+    )
+    rows = db.session.execute(q_programa).all()
+
+    por_programa = [
+        {
+            "programa": r.programa,
+            "existentes": int(r.existentes or 0),
+            "inexistentes": int(r.inexistentes or 0),
+        }
+        for r in rows
+    ]
+
+    return {"global": global_data, "por_programa": por_programa}
 
 
 def prt_resumen():
