@@ -1,0 +1,78 @@
+.donut-card {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border-radius: 22px;
+  padding: 1.2rem 1.4rem;
+  box-shadow: 0 6px 14px rgba(0,0,0,.05);
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+}
+
+.donut-card .head {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.donut-card .head h4 { margin: 0; font-size: 1rem; font-weight: 700; }
+.donut-card .badge {
+  background: rgba(72,164,224,.15);
+  color: var(--text-main);
+  border-radius: 999px;
+  padding: .2rem .6rem;
+  font-size: .8rem; font-weight: 700;
+}
+
+.donut-body {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+@media (max-width: 700px) {
+  .donut-body { grid-template-columns: 1fr; }
+}
+
+.donut-chart {
+  position: relative;
+  width: 100%; height: 160px;
+}
+.donut-center {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  text-align: center;
+  font-weight: 800; font-size: 1.2rem;
+}
+.donut-center small {
+  display: block; font-weight: 600; font-size: .75rem; opacity: .8;
+}
+
+/* Leyenda */
+.donut-legend {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: .4rem;
+}
+.donut-legend li {
+  display: grid;
+  grid-template-columns: 14px auto 1fr auto;
+  align-items: center;
+  gap: .5rem;
+}
+.donut-legend .dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+.donut-legend span { font-weight: 600; }
+.donut-legend b { justify-self: end; }
+.donut-legend em { opacity: .75; font-style: normal; margin-left: .5rem; }
+
+/* Colores (integrados con tema) */
+.c-sat { background: #4ade80 !important; }   /* verde */
+.c-ins { background: #f87171 !important; }   /* rojo  */
+
+/* Recharts usa fill por celdas: */
+.recharts-sector.c-sat { fill: #4ade80 !important; }
+.recharts-sector.c-ins { fill: #f87171 !important; }
+
+.donut-legend .rule {
+  margin-top: .4rem;
+  grid-template-columns: auto 1fr;
+}
+.muted { color: var(--text-muted); }
+
+/* Dark mode se apoya en tus variables ya definidas */

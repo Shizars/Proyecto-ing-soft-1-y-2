@@ -16,6 +16,8 @@ import AuditFormV2 from "../componentes/AuditFormV2";
 import ProgramResponsesWidget from "../componentes/ProgramResponsesWidget";
 import ProgramRankingWidget from "../componentes/ProgamRankingWidget";
 import SatisfactionForm from "../componentes/SatisfactionForm";
+import SatisfactionOverallWidget from "../componentes/SatisfactionOverallWidget";
+
 export default function DashboardPage() {
   /* ---------- estados ---------- */
   const [menuOpen, setMenuOpen] = useState(true);
@@ -348,6 +350,9 @@ export default function DashboardPage() {
           </div>
           <div style={{ maxWidth: "none" }}>
             <ProgramRankingWidget refreshMs={3000} />
+          </div>
+          <div>
+            <SatisfactionOverallWidget refreshMs={4000} threshold={4} />
           </div>
         </div>
 
