@@ -32,11 +32,15 @@ export default function DashboardPage() {
   const [documents, setDocuments] = useState([]);
   const [filterCats, setFilterCats] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+
   const [lastUploadedId, setLastUploadedId] = useState(null);
   const [satisfOpen, setSatisfOpen] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState(null); // ej: "F-SGC-033-B" | "F-SGC-036" | null
   const [showArchived, setShowArchived] = useState(false); // ver archivados o activos
   const [openArchiveId, setOpenArchiveId] = useState(null);
+
+  const [filterType, setFilterType] = useState("nombre");
+  const [filterValue, setFilterValue] = useState("");
 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -385,8 +389,8 @@ export default function DashboardPage() {
         )}&embedded=true`;
       }
       setPreviewUrl(url);
-      setSelectedDoc(doc); // 👈 guardamos el doc aquí
-      setPreviewOpen(true);
+      setSelectedDoc(doc);
+      setPreviewOpen(true); // 👈 faltaba
     } catch (err) {
       console.error("Preview error:", err.response || err);
       alert("No se pudo cargar la vista previa.");
@@ -414,15 +418,33 @@ export default function DashboardPage() {
   const sortedDocuments = [...documents].sort(
     (a, b) => new Date(b.fecha_subida) - new Date(a.fecha_subida)
   );
-  const docsToShow = sortedDocuments.filter(
-    (d) =>
-      (filterCats.length === 0 || filterCats.includes(d.categoria)) &&
-      (searchTerm.trim() === "" ||
-        d.titulo.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (!onlyFavs || d.is_favorite === true) &&
-      (showArchived ? d.archived === true : d.archived !== true) &&
-      (!selectedFolder || d.folder_code === selectedFolder)
-  );
+  const docsToShow = sortedDocuments
+    // filtros existentes
+    .filter(
+      (d) =>
+        (filterCats.length === 0 || filterCats.includes(d.categoria)) &&
+        (searchTerm.trim() === "" ||
+          d.titulo.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (!onlyFavs || d.is_favorite === true) &&
+        (showArchived ? d.archived === true : d.archived !== true) &&
+        (!selectedFolder || d.folder_code === selectedFolder)
+    )
+    // filtro segmentado (nombre / fecha / categoría)
+    .filter((d) => {
+      if (!filterValue) return true;
+
+      if (filterType === "nombre") {
+        return d.titulo.toLowerCase().includes(filterValue.toLowerCase());
+      }
+      if (filterType === "categoria") {
+        return d.categoria?.toLowerCase().includes(filterValue.toLowerCase());
+      }
+      if (filterType === "fecha") {
+        const fechaDoc = new Date(d.fecha_subida).toISOString().split("T")[0];
+        return fechaDoc === filterValue;
+      }
+      return true;
+    });
 
   const categoryOptions = [...new Set(documents.map((d) => d.categoria))];
 
@@ -604,6 +626,29 @@ export default function DashboardPage() {
             <i className="fas fa-box-archive" />{" "}
             {showArchived ? "Archivados" : "Activos"}
           </button>
+          <div className="filter-controls">
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+            >
+              <option value="nombre">Nombre</option>
+              <option value="fecha">Fecha</option>
+              <option value="categoria">Categoría</option>
+            </select>
+
+            <input
+              type={filterType === "fecha" ? "date" : "text"}
+              placeholder={
+                filterType === "nombre"
+                  ? "Buscar por nombre..."
+                  : filterType === "categoria"
+                  ? "Buscar por categoría..."
+                  : "Selecciona fecha"
+              }
+              value={filterValue}
+              onChange={(e) => setFilterValue(e.target.value)}
+            />
+          </div>
 
           <h3 className="section-title">Tus documentos</h3>
 

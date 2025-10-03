@@ -548,4 +548,108 @@
   transition: box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
   background-color: #f0fdf4;        /* verde muy claro */
 }
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
 
+.filter-bar input,
+.filter-bar select {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.filter-controls select,
+.filter-controls input {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-color);
+  font-size: 14px;
+  transition: background 0.3s, color 0.3s, border 0.3s;
+}
+
+/* Variables para modo claro */
+:root {
+  --bg-input: #fff;
+  --text-color: #222;
+  --border-color: #ccc;
+}
+
+/* Variables para modo oscuro */
+.dark {
+  --bg-input: #2b2b2b;
+  --text-color: #f5f5f5;
+  --border-color: #555;
+}
+
+.filter-controls select:focus,
+.filter-controls input:focus {
+  outline: none;
+  border-color: #3b82f6; /* azul */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* ===== Controles de filtro ===== */
+.filter-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0 4px;
+}
+
+.filter-controls select,
+.filter-controls input[type="text"],
+.filter-controls input[type="date"] {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #16242f;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: .95rem;
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease, background .2s ease;
+}
+
+.filter-controls select:focus,
+.filter-controls input[type="text"]:focus,
+.filter-controls input[type="date"]:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(72,164,224,.3);
+}
+
+.filter-controls .clear-btn {
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
+  color: #111827;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.filter-controls .clear-btn:hover { background: #eef2f6; }
+
+/* Dark mode */
+.dark .filter-controls select,
+.dark .filter-controls input[type="text"],
+.dark .filter-controls input[type="date"] {
+  background: #1f2937;
+  color: #eaf1f7;
+  border-color: #374151;
+}
+
+.dark .filter-controls .clear-btn {
+  background: #1f2937;
+  color: #eaf1f7;
+  border-color: #374151;
+}
+.dark .filter-controls .clear-btn:hover { background: #111827; }
