@@ -46,6 +46,10 @@ export const setFavorite = (docId, is_favorite) =>
 
 export const listFavorites = () => api.get(`/documents/favorites`);
 
+export const getComments = (docId) => api.get(`/documents/${docId}/comments`);
+export const addComment = (docId, body) => api.post(`/documents/${docId}/comments`, { body });
+export const deleteCommentApi = (commentId) => api.delete(`/documents/comments/${commentId}`);
+
 
 
 export default api;

@@ -10,12 +10,20 @@ from datetime import datetime
 from backend.models.shared_link import SharedLink
 from flask import jsonify
 from backend.extensions import db
+from backend.schemas.document_comment_schema import DocumentCommentSchema
+from backend.models.document_comment import DocumentComment
+from backend.extensions import db
+
 
 from backend.services.tag_service import (
     add_tags_to_document,
     remove_tag_from_document,
 )
 from backend.schemas.document_schema import doc_schema
+
+
+comment_schema = DocumentCommentSchema()
+comments_schema = DocumentCommentSchema(many=True)
 
 
 docs_bp = Blueprint("documents", __name__, url_prefix="/api/documents")
@@ -234,3 +242,60 @@ def list_favorites():
     user_id = get_jwt_identity()
     docs = Document.query.filter_by(owner_id=user_id, is_favorite=True).all()
     return docs_schema.dump(docs), 200
+
+
+@docs_bp.get("/<int:doc_id>/comments")
+@jwt_required()
+def list_comments(doc_id):
+    """Lista comentarios de un documento del usuario (o que el usuario posee)."""
+    from backend.models.document import Document
+    user_id = get_jwt_identity()
+    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+    rows = (DocumentComment.query
+            .filter_by(document_id=doc_id)
+            .order_by(DocumentComment.created_at.desc())
+            .all())
+    return comments_schema.dump(rows), 200
+
+
+@docs_bp.post("/<int:doc_id>/comments")
+@jwt_required()
+def add_comment(doc_id):
+    """Crea un comentario para un documento propio."""
+    from backend.models.document import Document
+    user_id = get_jwt_identity()
+    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+
+    body = (request.json or {}).get("body", "").strip()
+    if not body:
+        return {"error": "El comentario no puede estar vacío"}, 400
+
+    c = DocumentComment(document_id=doc_id, owner_id=user_id, body=body)
+    db.session.add(c)
+    db.session.commit()
+    return comment_schema.dump(c), 201
+
+
+@docs_bp.delete("/comments/<int:comment_id>")
+@jwt_required()
+def delete_comment(comment_id):
+    """Elimina un comentario si pertenece al usuario (o al dueño del documento)."""
+    from backend.models.document import Document
+    user_id = get_jwt_identity()
+
+    c = DocumentComment.query.get(comment_id)
+    if not c:
+        return {"error": "Comentario no encontrado"}, 404
+
+    # el autor del comentario puede borrar; también el dueño del documento
+    doc = Document.query.get(c.document_id)
+    if c.owner_id != user_id and doc.owner_id != user_id:
+        return {"error": "Sin permisos para eliminar"}, 403
+
+    db.session.delete(c)
+    db.session.commit()
+    return {"msg": "Comentario eliminado"}, 200

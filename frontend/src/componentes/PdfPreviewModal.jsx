@@ -1,21 +1,29 @@
 import React from "react";
 import "./PdfPreviewModal.css";
+import CommentsPanel from "./CommentsPanel";
 
-export default function PdfPreviewModal({ isOpen, url, onClose }) {
+export default function PdfPreviewModal({ isOpen, url, docId, onClose }) {
   if (!isOpen) return null;
   return (
-    <div className="pdf-modal-overlay" onClick={onClose}>
-      <div className="pdf-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="pdf-modal-close" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose}>
+      <div
+        className="modal modal-xxl pdf-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button className="modal-close" onClick={onClose} aria-label="Cerrar">
           ×
         </button>
-        <iframe
-          src={url}
-          title="Vista previa del documento"
-          width="100%"
-          height="100%"
-          frameBorder="0"
-        />
+
+        <div className="pdf-layout">
+          <div className="pdf-view">
+            <iframe
+              title="preview"
+              src={url}
+              style={{ width: "100%", height: "100%", border: "none" }}
+            />
+          </div>
+          <CommentsPanel docId={docId} />
+        </div>
       </div>
     </div>
   );

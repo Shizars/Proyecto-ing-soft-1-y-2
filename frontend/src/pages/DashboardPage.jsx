@@ -38,6 +38,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [onlyFavs, setOnlyFavs] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
 
   // Descarga un blob CSV usando el promise del servicio
   const downloadCsv = async (promise, filename) => {
@@ -256,6 +257,7 @@ export default function DashboardPage() {
         )}&embedded=true`;
       }
       setPreviewUrl(url);
+      setSelectedDoc(doc); // 👈 guardamos el doc aquí
       setPreviewOpen(true);
     } catch (err) {
       console.error("Preview error:", err.response || err);
@@ -537,6 +539,7 @@ export default function DashboardPage() {
       <PdfPreviewModal
         isOpen={previewOpen}
         url={previewUrl}
+        docId={selectedDoc?.id} // ahora usamos el estado
         onClose={() => setPreviewOpen(false)}
       />
 

@@ -32,3 +32,12 @@
   cursor: pointer;
   z-index: 1200;
 }
+
+.pdf-modal { width: min(1200px, 96vw); max-height: 92vh; }
+.pdf-layout { display: grid; grid-template-columns: 1fr 340px; gap: 12px; height: 80vh; }
+.pdf-view { background: #000; border-radius: 10px; overflow: hidden; }
+@media (max-width: 900px) {
+  .pdf-layout { grid-template-columns: 1fr; }
+  .comments-card { width: 100%; }
+}
+
