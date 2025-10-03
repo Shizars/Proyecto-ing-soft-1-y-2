@@ -175,3 +175,16 @@ def delete_tag(doc_id, tag_id):
     """
     doc = remove_tag_from_document(doc_id, tag_id)
     return doc_schema.dump(doc), 200
+
+
+@docs_bp.delete("/<int:doc_id>")
+@jwt_required()
+def delete_document(doc_id):
+    """Elimina un documento del usuario autenticado (archivo + DB)."""
+    user_id = get_jwt_identity()
+    from backend.services.document_service import delete_document_for_owner
+
+    ok = delete_document_for_owner(doc_id, user_id)
+    if not ok:
+        return {"error": "Documento no encontrado o sin permisos"}, 404
+    return {"msg": "Documento eliminado"}, 200

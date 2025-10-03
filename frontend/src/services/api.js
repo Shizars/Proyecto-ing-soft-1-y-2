@@ -36,6 +36,7 @@ export const removeTag = (docId, tagId) =>
 export const createAudit = (data) => api.post("/audits", data);
 export const getAudits = () => api.get("/audits");
 
+export const deleteDocument = (docId) => api.delete(`/documents/${docId}`);
 
 
 export default api;

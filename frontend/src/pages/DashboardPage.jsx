@@ -20,6 +20,7 @@ import SatisfactionOverallWidget from "../componentes/SatisfactionOverallWidget"
 import SatisfactionByProgramWidget from "../componentes/SatisfactionByProgramWidget";
 import ExistenciaWidget from "../componentes/ExistenciaWidget";
 import { exportSatisfactionCSV, exportAuditsCSV } from "../services/exports";
+import { deleteDocument } from "../services/api";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -152,6 +153,20 @@ export default function DashboardPage() {
     } catch (err) {
       console.error("Download error:", err.response || err);
       alert("No se pudo descargar el documento.");
+    }
+  };
+  /*------------Eliminar---------------*/
+  const handleDelete = async (doc) => {
+    const ok = window.confirm(
+      `¿Eliminar el documento "${doc.titulo}"? Esta acción es permanente.`
+    );
+    if (!ok) return;
+    try {
+      await deleteDocument(doc.id);
+      await loadDocuments();
+    } catch (err) {
+      console.error("Delete error:", err?.response || err);
+      alert(err?.response?.data?.error || "No se pudo eliminar el documento.");
     }
   };
 
@@ -455,6 +470,14 @@ export default function DashboardPage() {
                   >
                     <i className="fas fa-download" />
                   </button>
+                  <button
+                    onClick={() => handleDelete(doc)}
+                    title="Eliminar documento"
+                    style={{ background: "#ef4444" }}
+                  >
+                    <i className="fas fa-trash" />
+                  </button>
+
                   <button
                     onClick={() => handlePreview(doc)}
                     title="Ver documento"
