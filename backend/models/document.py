@@ -18,6 +18,11 @@ class Document(db.Model):
     is_favorite = db.Column(db.Boolean, nullable=False,
                             server_default="0", index=True)
 
+    archived = db.Column(db.Boolean, nullable=False,
+                         server_default="0", index=True)
+    # ej: "F-SGC-033-B", "F-SGC-036"
+    folder_code = db.Column(db.String(50), index=True)
+
     owner_id = db.Column(
         db.Integer,
         db.ForeignKey("users.id", ondelete="CASCADE"),

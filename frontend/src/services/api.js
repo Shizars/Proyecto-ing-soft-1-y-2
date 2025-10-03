@@ -50,6 +50,13 @@ export const getComments = (docId) => api.get(`/documents/${docId}/comments`);
 export const addComment = (docId, body) => api.post(`/documents/${docId}/comments`, { body });
 export const deleteCommentApi = (commentId) => api.delete(`/documents/comments/${commentId}`);
 
+export const archiveDocument = (docId, folder_code) =>
+  api.patch(`/documents/${docId}/archive`, { folder_code });
+
+export const unarchiveDocument = (docId) =>
+  api.patch(`/documents/${docId}/unarchive`);
+
+
 
 
 export default api;

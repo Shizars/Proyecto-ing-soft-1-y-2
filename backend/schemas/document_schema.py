@@ -8,6 +8,8 @@ from marshmallow import fields
 class DocumentSchema(ma.SQLAlchemyAutoSchema):
 
     tags = fields.List(fields.Nested(TagSchema(only=("id", "nombre"))))
+    archived = fields.Boolean()
+    folder_code = fields.String()
 
     class Meta:
         model = Document

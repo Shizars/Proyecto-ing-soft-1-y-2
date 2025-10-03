@@ -299,3 +299,46 @@ def delete_comment(comment_id):
     db.session.delete(c)
     db.session.commit()
     return {"msg": "Comentario eliminado"}, 200
+
+
+# Carpetas permitidas (fijas, sin crear/eliminar)
+ALLOWED_FOLDERS = {"F-SGC-033-B", "F-SGC-036"}
+
+
+@docs_bp.patch("/<int:doc_id>/archive")
+@jwt_required()
+def archive_document(doc_id):
+    """Marca un documento como archivado dentro de una carpeta fija."""
+    from backend.models.document import Document
+    user_id = get_jwt_identity()
+
+    data = request.get_json() or {}
+    folder_code = (data.get("folder_code") or "").strip()
+    if folder_code not in ALLOWED_FOLDERS:
+        return {"error": "Carpeta inválida"}, 400
+
+    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+
+    doc.archived = True
+    doc.folder_code = folder_code
+    db.session.commit()
+    return {"id": doc.id, "archived": doc.archived, "folder_code": doc.folder_code}, 200
+
+
+@docs_bp.patch("/<int:doc_id>/unarchive")
+@jwt_required()
+def unarchive_document(doc_id):
+    """Quita el documento del archivo (vuelve a 'sin carpeta')."""
+    from backend.models.document import Document
+    user_id = get_jwt_identity()
+
+    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+
+    doc.archived = False
+    doc.folder_code = None
+    db.session.commit()
+    return {"id": doc.id, "archived": doc.archived, "folder_code": doc.folder_code}, 200

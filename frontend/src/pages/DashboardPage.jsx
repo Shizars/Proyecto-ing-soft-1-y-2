@@ -22,6 +22,7 @@ import ExistenciaWidget from "../componentes/ExistenciaWidget";
 import { exportSatisfactionCSV, exportAuditsCSV } from "../services/exports";
 import { deleteDocument } from "../services/api";
 import { toggleFavorite } from "../services/api";
+import { archiveDocument, unarchiveDocument } from "../services/api";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -33,6 +34,9 @@ export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [lastUploadedId, setLastUploadedId] = useState(null);
   const [satisfOpen, setSatisfOpen] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState(null); // ej: "F-SGC-033-B" | "F-SGC-036" | null
+  const [showArchived, setShowArchived] = useState(false); // ver archivados o activos
+  const [openArchiveId, setOpenArchiveId] = useState(null);
 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -58,6 +62,31 @@ export default function DashboardPage() {
       alert("No se pudo exportar el archivo.");
     }
   };
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      // si no hay menú abierto, no hacemos nada
+      if (openArchiveId == null) return;
+
+      // Busca el dropdown más cercano al target del click
+      const dd = e.target.closest(".archive-dropdown");
+
+      // Si el click fue dentro de un dropdown
+      if (dd) {
+        // ¿Corresponde al doc actualmente abierto?
+        const clickedId = dd.getAttribute("data-docid");
+        if (String(clickedId) === String(openArchiveId)) {
+          // Es el mismo dropdown abierto → NO cerrar
+          return;
+        }
+      }
+
+      // Si no es el mismo dropdown, o el click fue fuera → cerrar
+      setOpenArchiveId(null);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openArchiveId]);
 
   // Modal de auditoría controlado por la URL
   const auditModalOpen = pathname.startsWith("/dashboard/auditorias/nueva");
@@ -246,6 +275,25 @@ export default function DashboardPage() {
       alert("No se pudo cambiar favorito.");
     }
   };
+  const handleArchive = async (doc, folder_code) => {
+    try {
+      await archiveDocument(doc.id, folder_code);
+      await loadDocuments();
+    } catch (err) {
+      console.error("Archive error:", err?.response || err);
+      alert(err?.response?.data?.error || "No se pudo archivar el documento.");
+    }
+  };
+
+  const handleUnarchive = async (doc) => {
+    try {
+      await unarchiveDocument(doc.id);
+      await loadDocuments();
+    } catch (err) {
+      console.error("Unarchive error:", err?.response || err);
+      alert("No se pudo desarchivar el documento.");
+    }
+  };
 
   const handlePreview = async (doc) => {
     try {
@@ -286,13 +334,14 @@ export default function DashboardPage() {
   const sortedDocuments = [...documents].sort(
     (a, b) => new Date(b.fecha_subida) - new Date(a.fecha_subida)
   );
-
   const docsToShow = sortedDocuments.filter(
     (d) =>
       (filterCats.length === 0 || filterCats.includes(d.categoria)) &&
       (searchTerm.trim() === "" ||
         d.titulo.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (!onlyFavs || d.is_favorite === true)
+      (!onlyFavs || d.is_favorite === true) &&
+      (showArchived ? d.archived === true : d.archived !== true) &&
+      (!selectedFolder || d.folder_code === selectedFolder)
   );
 
   const categoryOptions = [...new Set(documents.map((d) => d.categoria))];
@@ -386,15 +435,27 @@ export default function DashboardPage() {
 
           {/* mini-carpetas */}
           <div className="folder-grid">
-            <div className="folder-card green">
-              <span className="folder-id">01</span>
-              <span className="folder-title">F-SGC-033-B</span>
-            </div>
-            <div className="folder-card purple">
-              <span className="folder-id">02</span>
-              <span className="folder-title">F-SGC-036</span>
-            </div>
-            <div className="folder-card gallery">
+            {[
+              { code: "F-SGC-033-B", label: "F-SGC-033-B", color: "green" },
+              { code: "F-SGC-036", label: "F-SGC-036", color: "purple" },
+            ].map((f) => (
+              <div
+                key={f.code}
+                className={`folder-card ${f.color} ${
+                  selectedFolder === f.code ? "active" : ""
+                }`}
+                onClick={() =>
+                  setSelectedFolder(selectedFolder === f.code ? null : f.code)
+                }
+                title="Filtrar por carpeta"
+                role="button"
+              >
+                <span className="folder-id">•</span>
+                <span className="folder-title">{f.label}</span>
+              </div>
+            ))}
+
+            <div className="folder-card gallery" title="(solo demostrativo)">
               <span className="folder-id">+</span>
               <span className="folder-title">Nueva carpeta</span>
             </div>
@@ -455,6 +516,14 @@ export default function DashboardPage() {
           >
             <i className={onlyFavs ? "fas fa-star" : "far fa-star"} /> Favoritos
           </button>
+          <button
+            className={`chip-toggle ${showArchived ? "on" : ""}`}
+            onClick={() => setShowArchived((v) => !v)}
+            title={showArchived ? "Ver activos" : "Ver archivados"}
+          >
+            <i className="fas fa-box-archive" />{" "}
+            {showArchived ? "Archivados" : "Activos"}
+          </button>
 
           <h3 className="section-title">Tus documentos</h3>
 
@@ -471,6 +540,11 @@ export default function DashboardPage() {
                 <div className="doc-id">#{doc.id}</div>
                 <div className="doc-title truncado" title={doc.titulo}>
                   <strong>{doc.titulo}</strong>
+                  {doc.archived && (
+                    <span className="pill-folder" title="Archivado en carpeta">
+                      {doc.folder_code}
+                    </span>
+                  )}
                 </div>
                 <div className="doc-format">
                   {doc.formato ? doc.formato.toUpperCase() : "?"}
@@ -485,7 +559,51 @@ export default function DashboardPage() {
                 <div className="doc-tags">
                   <TagSelector doc={doc} refresh={loadDocuments} />
                 </div>
+
                 <div className="doc-actions">
+                  {/* Archivar / Desarchivar */}
+                  {doc.archived ? (
+                    <button
+                      onClick={() => handleUnarchive(doc)}
+                      title="Quitar de la carpeta"
+                    >
+                      <i className="fas fa-box-open" />
+                    </button>
+                  ) : (
+                    <div className="archive-dropdown" data-docid={doc.id}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation(); // evita cierres por burbujeo
+                          setOpenArchiveId(
+                            openArchiveId === doc.id ? null : doc.id
+                          );
+                        }}
+                        title="Archivar en carpeta"
+                      >
+                        <i className="fas fa-box-archive" />
+                      </button>
+
+                      {openArchiveId === doc.id && (
+                        <div
+                          className="archive-menu"
+                          onMouseDown={(e) => e.stopPropagation()} // asegura que no se cierre al hacer click dentro
+                        >
+                          <button
+                            onClick={() => handleArchive(doc, "F-SGC-033-B")}
+                          >
+                            F-SGC-033-B
+                          </button>
+                          <button
+                            onClick={() => handleArchive(doc, "F-SGC-036")}
+                          >
+                            F-SGC-036
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Favoritos */}
                   <button
                     onClick={() => handleToggleFavorite(doc)}
                     title={
@@ -501,12 +619,16 @@ export default function DashboardPage() {
                       }
                     />
                   </button>
+
+                  {/* Descargar */}
                   <button
                     onClick={() => handleDownload(doc)}
                     title="Descargar documento"
                   >
                     <i className="fas fa-download" />
                   </button>
+
+                  {/* Eliminar */}
                   <button
                     onClick={() => handleDelete(doc)}
                     title="Eliminar documento"
@@ -515,12 +637,15 @@ export default function DashboardPage() {
                     <i className="fas fa-trash" />
                   </button>
 
+                  {/* Ver */}
                   <button
                     onClick={() => handlePreview(doc)}
                     title="Ver documento"
                   >
                     <i className="fas fa-eye" />
                   </button>
+
+                  {/* Compartir */}
                   <button
                     onClick={() => handleShare(doc)}
                     title="Copiar enlace"
