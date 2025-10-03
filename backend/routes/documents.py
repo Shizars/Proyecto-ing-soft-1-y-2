@@ -350,3 +350,26 @@ def unarchive_document(doc_id):
     doc.folder_code = None
     db.session.commit()
     return {"id": doc.id, "archived": doc.archived, "folder_code": doc.folder_code}, 200
+
+
+@docs_bp.put("/<int:doc_id>/rename")
+@jwt_required()
+def rename_document(doc_id):
+    from backend.models.document import Document
+    from backend.extensions import db
+
+    user_id = get_jwt_identity()
+    data = request.json
+    nuevo_nombre = data.get("titulo")
+
+    if not nuevo_nombre:
+        return {"error": "Se requiere un nuevo nombre"}, 400
+
+    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+
+    doc.titulo = nuevo_nombre
+    db.session.commit()
+
+    return {"msg": "Documento renombrado con éxito", "document": {"id": doc.id, "titulo": doc.titulo}}, 200

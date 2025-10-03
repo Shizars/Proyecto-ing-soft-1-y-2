@@ -56,6 +56,8 @@ export const archiveDocument = (docId, folder_code) =>
 export const unarchiveDocument = (docId) =>
   api.patch(`/documents/${docId}/unarchive`);
 
+export const renameDocument = (docId, newName) =>
+  api.put(`/documents/${docId}/rename`, { titulo: newName });
 
 
 

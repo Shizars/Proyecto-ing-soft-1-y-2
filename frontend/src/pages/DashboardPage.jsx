@@ -23,6 +23,7 @@ import { exportSatisfactionCSV, exportAuditsCSV } from "../services/exports";
 import { deleteDocument } from "../services/api";
 import { toggleFavorite } from "../services/api";
 import { archiveDocument, unarchiveDocument } from "../services/api";
+import { renameDocument } from "../services/api";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -685,8 +686,51 @@ export default function DashboardPage() {
                 <div className="doc-tags">
                   <TagSelector doc={doc} refresh={loadDocuments} />
                 </div>
+                <button
+                  onClick={() => {
+                    const nuevo = prompt(
+                      "Nuevo nombre para el documento:",
+                      doc.titulo
+                    );
+                    if (nuevo && nuevo.trim() !== "") {
+                      renameDocument(doc.id, nuevo.trim())
+                        .then(() => loadDocuments())
+                        .catch((err) => {
+                          console.error("Rename error:", err?.response || err);
+                          alert("No se pudo renombrar el documento.");
+                        });
+                    }
+                  }}
+                  title="Renombrar documento"
+                >
+                  <i className="fas fa-edit" />
+                </button>
 
                 <div className="doc-actions">
+                  {/* Renombrar */}
+                  <button
+                    onClick={() => {
+                      const nuevo = prompt(
+                        "Nuevo nombre para el documento:",
+                        doc.titulo
+                      );
+                      if (nuevo && nuevo.trim() !== "") {
+                        renameDocument(doc.id, nuevo.trim())
+                          .then(() => loadDocuments())
+                          .catch((err) => {
+                            console.error(
+                              "Rename error:",
+                              err?.response || err
+                            );
+                            alert("No se pudo renombrar el documento.");
+                          });
+                      }
+                    }}
+                    title="Renombrar documento"
+                  >
+                    <i className="fas fa-edit" />
+                  </button>
+
                   {/* Archivar / Desarchivar */}
                   {doc.archived ? (
                     <button
@@ -712,7 +756,7 @@ export default function DashboardPage() {
                       {openArchiveId === doc.id && (
                         <div
                           className="archive-menu"
-                          onMouseDown={(e) => e.stopPropagation()} // asegura que no se cierre al hacer click dentro
+                          onMouseDown={(e) => e.stopPropagation()} // no cerrar al click interno
                         >
                           <button
                             onClick={() => handleArchive(doc, "F-SGC-033-B")}
@@ -758,7 +802,7 @@ export default function DashboardPage() {
                   <button
                     onClick={() => handleDelete(doc)}
                     title="Eliminar documento"
-                    style={{ background: "#ef4444" }}
+                    className="danger"
                   >
                     <i className="fas fa-trash" />
                   </button>
