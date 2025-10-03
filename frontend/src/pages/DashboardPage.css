@@ -344,3 +344,49 @@
   --accent-green:  #1fcb7d;
   --accent-purple: #22709a;
 }
+
+/* Botón estrella */
+.doc-actions .fav-btn {
+  background: #fbbf24; /* ámbar */
+  color: #111827;
+}
+.doc-actions .fav-btn.on {
+  filter: saturate(1.1);
+}
+.dark .doc-actions .fav-btn {
+  background: #f59e0b;
+  color: #0b1220;
+}
+
+/* Badge “Favorito” */
+.fav-badge {
+  margin-left: 8px;
+  background: #fde68a;
+  color: #92400e;
+  font-weight: 700;
+  font-size: .72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.dark .fav-badge {
+  background: #78350f;
+  color: #fde68a;
+}
+
+/* Chip toggle de filtro */
+.chip-toggle {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111827;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.chip-toggle.on {
+  background: #fbbf24;
+  border-color: #f59e0b;
+}
+.dark .chip-toggle { background: #1f2937; border-color: #374151; color: #e5e7eb; }
+.dark .chip-toggle.on { background: #f59e0b; color: #111827; }
+

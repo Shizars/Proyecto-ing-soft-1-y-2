@@ -8,6 +8,8 @@ from backend.schemas.document_schema import docs_schema
 from flask_jwt_extended import verify_jwt_in_request
 from datetime import datetime
 from backend.models.shared_link import SharedLink
+from flask import jsonify
+from backend.extensions import db
 
 from backend.services.tag_service import (
     add_tags_to_document,
@@ -188,3 +190,47 @@ def delete_document(doc_id):
     if not ok:
         return {"error": "Documento no encontrado o sin permisos"}, 404
     return {"msg": "Documento eliminado"}, 200
+
+
+@docs_bp.post("/<int:doc_id>/favorite/toggle")
+@jwt_required()
+def toggle_favorite(doc_id):
+    """Alterna favorito del documento del usuario autenticado."""
+    from backend.models.document import Document
+
+    user_id = get_jwt_identity()
+    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+
+    doc.is_favorite = not bool(doc.is_favorite)
+    db.session.commit()
+    return {"id": doc.id, "is_favorite": doc.is_favorite}, 200
+
+
+@docs_bp.post("/<int:doc_id>/favorite")
+@jwt_required()
+def set_favorite(doc_id):
+    """Set explícito: body { is_favorite: true|false }."""
+    from backend.models.document import Document
+
+    want = bool(request.json.get("is_favorite", True))
+    user_id = get_jwt_identity()
+    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+
+    doc.is_favorite = want
+    db.session.commit()
+    return {"id": doc.id, "is_favorite": doc.is_favorite}, 200
+
+
+@docs_bp.get("/favorites")
+@jwt_required()
+def list_favorites():
+    """Devuelve solo documentos favoritos del usuario."""
+    from backend.models.document import Document
+
+    user_id = get_jwt_identity()
+    docs = Document.query.filter_by(owner_id=user_id, is_favorite=True).all()
+    return docs_schema.dump(docs), 200

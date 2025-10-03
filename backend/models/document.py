@@ -15,6 +15,8 @@ class Document(db.Model):
     # admite “application/pdf” si hiciera falta
     formato = db.Column(db.String(20))
     fecha_subida = db.Column(db.DateTime, default=datetime.utcnow)
+    is_favorite = db.Column(db.Boolean, nullable=False,
+                            server_default="0", index=True)
 
     owner_id = db.Column(
         db.Integer,

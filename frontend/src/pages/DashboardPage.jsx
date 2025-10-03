@@ -21,6 +21,7 @@ import SatisfactionByProgramWidget from "../componentes/SatisfactionByProgramWid
 import ExistenciaWidget from "../componentes/ExistenciaWidget";
 import { exportSatisfactionCSV, exportAuditsCSV } from "../services/exports";
 import { deleteDocument } from "../services/api";
+import { toggleFavorite } from "../services/api";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [onlyFavs, setOnlyFavs] = useState(false);
 
   // Descarga un blob CSV usando el promise del servicio
   const downloadCsv = async (promise, filename) => {
@@ -234,6 +236,15 @@ export default function DashboardPage() {
       setLoading(false);
     }
   };
+  const handleToggleFavorite = async (doc) => {
+    try {
+      await toggleFavorite(doc.id);
+      await loadDocuments(); // refresca la lista con el nuevo estado
+    } catch (err) {
+      console.error("Favorite toggle error:", err?.response || err);
+      alert("No se pudo cambiar favorito.");
+    }
+  };
 
   const handlePreview = async (doc) => {
     try {
@@ -278,8 +289,10 @@ export default function DashboardPage() {
     (d) =>
       (filterCats.length === 0 || filterCats.includes(d.categoria)) &&
       (searchTerm.trim() === "" ||
-        d.titulo.toLowerCase().includes(searchTerm.toLowerCase()))
+        d.titulo.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (!onlyFavs || d.is_favorite === true)
   );
+
   const categoryOptions = [...new Set(documents.map((d) => d.categoria))];
 
   /* ---------- UI ---------- */
@@ -433,6 +446,13 @@ export default function DashboardPage() {
             </div>
           </div>
           <br />
+          <button
+            onClick={() => setOnlyFavs((v) => !v)}
+            className={`chip-toggle ${onlyFavs ? "on" : ""}`}
+            title="Ver solo favoritos"
+          >
+            <i className={onlyFavs ? "fas fa-star" : "far fa-star"} /> Favoritos
+          </button>
 
           <h3 className="section-title">Tus documentos</h3>
 
@@ -464,6 +484,21 @@ export default function DashboardPage() {
                   <TagSelector doc={doc} refresh={loadDocuments} />
                 </div>
                 <div className="doc-actions">
+                  <button
+                    onClick={() => handleToggleFavorite(doc)}
+                    title={
+                      doc.is_favorite
+                        ? "Quitar de favoritos"
+                        : "Marcar como favorito"
+                    }
+                    className={`fav-btn ${doc.is_favorite ? "on" : ""}`}
+                  >
+                    <i
+                      className={
+                        doc.is_favorite ? "fas fa-star" : "far fa-star"
+                      }
+                    />
+                  </button>
                   <button
                     onClick={() => handleDownload(doc)}
                     title="Descargar documento"

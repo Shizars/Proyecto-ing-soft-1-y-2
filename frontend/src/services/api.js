@@ -38,6 +38,15 @@ export const getAudits = () => api.get("/audits");
 
 export const deleteDocument = (docId) => api.delete(`/documents/${docId}`);
 
+export const toggleFavorite = (docId) =>
+  api.post(`/documents/${docId}/favorite/toggle`);
+
+export const setFavorite = (docId, is_favorite) =>
+  api.post(`/documents/${docId}/favorite`, { is_favorite });
+
+export const listFavorites = () => api.get(`/documents/favorites`);
+
+
 
 export default api;
 
