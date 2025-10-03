@@ -43,6 +43,11 @@ export default function DashboardPage() {
   const { pathname } = useLocation();
   const [onlyFavs, setOnlyFavs] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
+  // después de cargar documents
+  const nameCounts = documents.reduce((acc, d) => {
+    acc[d.titulo] = (acc[d.titulo] || 0) + 1;
+    return acc;
+  }, {});
 
   // Descarga un blob CSV usando el promise del servicio
   const downloadCsv = async (promise, filename) => {
@@ -240,32 +245,107 @@ export default function DashboardPage() {
     setLoading(true);
     setError("");
 
-    const payload = new FormData();
-    Object.entries({
-      file: formData.file,
-      nombre: formData.name,
-      dia: formData.day,
-      mes: formData.month,
-      anno: formData.year,
-      categoria: formData.category,
-      region: formData.region,
-    }).forEach(([k, v]) => payload.append(k, v));
+    const buildPayload = (allowDup = false) => {
+      const fd = new FormData();
+      Object.entries({
+        file: formData.file,
+        nombre: formData.name,
+        dia: formData.day,
+        mes: formData.month,
+        anno: formData.year,
+        categoria: formData.category,
+        region: formData.region,
+      }).forEach(([k, v]) => fd.append(k, v));
+      if (allowDup) fd.append("allow_duplicate", "1");
+      return fd;
+    };
 
     try {
-      const response = await api.post("/documents/upload", payload);
-      setLastUploadedId(response.data.id);
+      // intento normal (sin duplicados)
+      const response = await api.post("/documents/upload", buildPayload(false));
+
+      // ⬅️ usar el id correcto devuelto por el backend
+      setLastUploadedId(response.data.document.id);
+
       await loadDocuments();
+
+      // Quita el highlight después de 3 segundos
+      setTimeout(() => setLastUploadedId(null), 3000);
 
       closeModal();
       setSuccess("El documento se subió de manera exitosa.");
       setTimeout(() => setSuccess(""), 5000);
     } catch (err) {
-      console.error("Upload error:", err.response || err);
-      setError(err.response?.data?.error || "Error al subir documento.");
+      const status = err?.response?.status;
+      const data = err?.response?.data;
+
+      if (status === 409 && data?.error === "DUPLICATE") {
+        // 1) Pregunta simple: ¿subir igual?
+        const subirIgual = window.confirm(
+          `${data.message}\n\n¿Deseas subirlo de todas formas (quedarán 2 archivos con el mismo nombre)?`
+        );
+
+        if (subirIgual) {
+          try {
+            const res2 = await api.post(
+              "/documents/upload",
+              buildPayload(true)
+            );
+            setLastUploadedId(res2.data.document.id);
+            await loadDocuments();
+            setTimeout(() => setLastUploadedId(null), 3000);
+            closeModal();
+            setSuccess("Documento subido (duplicado permitido).");
+            setTimeout(() => setSuccess(""), 5000);
+            return;
+          } catch (e2) {
+            console.error(
+              "Upload (allow_duplicate) error:",
+              e2?.response || e2
+            );
+            setError(e2?.response?.data?.error || "Error al subir duplicado.");
+            return;
+          }
+        }
+
+        // 2) Si no quiere subir igual, ofrecer borrar el existente y subir
+        const borrarYSubir = window.confirm(
+          "¿Deseas eliminar el archivo existente y subir este nuevo en su lugar?"
+        );
+        if (borrarYSubir) {
+          try {
+            await deleteDocument(data.existing_id);
+            const res3 = await api.post(
+              "/documents/upload",
+              buildPayload(false)
+            );
+            setLastUploadedId(res3.data.document.id);
+            await loadDocuments();
+            setTimeout(() => setLastUploadedId(null), 3000);
+            closeModal();
+            setSuccess("Documento reemplazado exitosamente.");
+            setTimeout(() => setSuccess(""), 5000);
+            return;
+          } catch (e3) {
+            console.error("Reemplazo error:", e3?.response || e3);
+            setError(
+              e3?.response?.data?.error || "No se pudo reemplazar el documento."
+            );
+            return;
+          }
+        }
+
+        // 3) Canceló todo
+        setError("Operación cancelada por el usuario.");
+      } else {
+        console.error("Upload error:", err?.response || err);
+        setError(err?.response?.data?.error || "Error al subir documento.");
+      }
     } finally {
       setLoading(false);
     }
   };
+
   const handleToggleFavorite = async (doc) => {
     try {
       await toggleFavorite(doc.id);
@@ -540,12 +620,13 @@ export default function DashboardPage() {
                 <div className="doc-id">#{doc.id}</div>
                 <div className="doc-title truncado" title={doc.titulo}>
                   <strong>{doc.titulo}</strong>
-                  {doc.archived && (
-                    <span className="pill-folder" title="Archivado en carpeta">
-                      {doc.folder_code}
+                  {nameCounts[doc.titulo] > 1 && (
+                    <span className="pill-dup" title="Nombre duplicado">
+                      DUP
                     </span>
                   )}
                 </div>
+
                 <div className="doc-format">
                   {doc.formato ? doc.formato.toUpperCase() : "?"}
                 </div>

@@ -13,6 +13,7 @@ from backend.extensions import db
 from backend.schemas.document_comment_schema import DocumentCommentSchema
 from backend.models.document_comment import DocumentComment
 from backend.extensions import db
+from backend.models.document import Document
 
 
 from backend.services.tag_service import (
@@ -39,21 +40,28 @@ def allowed_file(filename):
 @docs_bp.post("/upload")
 @jwt_required()
 def upload():
-    """Sube un archivo y crea un registro asociado al usuario logueado."""
-    if "file" not in request.files:
-        return {"error": "No se envió archivo"}, 400
-
+    # ... ya tienes:
+    # if "file" not in request.files": ...
     file_obj = request.files["file"]
 
-    # Validación del formato del archivo
     if not allowed_file(file_obj.filename):
-        return {
-            "error": "Formato de archivo no permitido. Solo PDF, DOC, DOCX y XLSX son aceptados."
-        }, 400
+        return {"error": "Formato de archivo no permitido. Solo PDF, DOC, DOCX y XLSX son aceptados."}, 400
 
     user_id = get_jwt_identity()
     categoria = request.form.get("categoria", "General")
 
+    # ⬇️ NUEVO: chequeo de duplicado por nombre (para este usuario)
+    allow_dup = request.form.get("allow_duplicate") in ("1", "true", "True")
+    existing = Document.query.filter_by(
+        owner_id=user_id, titulo=file_obj.filename).first()
+    if existing and not allow_dup:
+        return {
+            "error": "DUPLICATE",
+            "existing_id": existing.id,
+            "message": f"Ya tienes un documento con el nombre '{file_obj.filename}'."
+        }, 409
+
+    # si no hay duplicado o está permitido, guardamos
     doc = save_file(file_obj, user_id, categoria)
     return {"msg": "Subido", "document": {"id": doc.id}}, 201
 
