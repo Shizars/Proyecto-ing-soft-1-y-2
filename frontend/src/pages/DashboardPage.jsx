@@ -19,6 +19,7 @@ import SatisfactionForm from "../componentes/SatisfactionForm";
 import SatisfactionOverallWidget from "../componentes/SatisfactionOverallWidget";
 import SatisfactionByProgramWidget from "../componentes/SatisfactionByProgramWidget";
 import ExistenciaWidget from "../componentes/ExistenciaWidget";
+import { exportSatisfactionCSV, exportAuditsCSV } from "../services/exports";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -34,6 +35,25 @@ export default function DashboardPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  // Descarga un blob CSV usando el promise del servicio
+  const downloadCsv = async (promise, filename) => {
+    try {
+      const res = await promise;
+      const blob = new Blob([res.data], { type: "text/csv;charset=utf-8" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error exportando:", err);
+      alert("No se pudo exportar el archivo.");
+    }
+  };
 
   // Modal de auditoría controlado por la URL
   const auditModalOpen = pathname.startsWith("/dashboard/auditorias/nueva");
@@ -280,6 +300,22 @@ export default function DashboardPage() {
           <button onClick={() => navigate("/dashboard/auditorias/nueva")}>
             <i className="fas fa-clipboard-check" />
             <span>Nueva auditoría</span>
+          </button>
+
+          <button
+            onClick={() =>
+              downloadCsv(exportSatisfactionCSV(), "satisfaccion.csv")
+            }
+          >
+            <i className="fas fa-download" />
+            <span>Exportar Satisfacción</span>
+          </button>
+
+          <button
+            onClick={() => downloadCsv(exportAuditsCSV(), "auditorias.csv")}
+          >
+            <i className="fas fa-download" />
+            <span>Exportar Auditorías</span>
           </button>
 
           <button onClick={() => setSatisfOpen(true)}>

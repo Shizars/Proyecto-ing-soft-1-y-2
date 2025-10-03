@@ -3,6 +3,10 @@ from backend.extensions import db
 from backend.models.satisfaction import SatisfactionSurvey
 from backend.schemas.satisfaction_schema import SatisfactionSurveySchema
 from sqlalchemy import text
+from datetime import date
+from sqlalchemy import text
+from flask import Response
+
 bp = Blueprint("satisfaction", __name__, url_prefix="/api/satisfaction")
 
 schema = SatisfactionSurveySchema()
@@ -153,3 +157,94 @@ def report_by_program_satisfaction():
     # orden por % desc por defecto
     out.sort(key=lambda x: x["pct_satisfechos"], reverse=True)
     return out
+
+
+def _parse_date(s: str | None):
+    if not s:
+        return None
+    try:
+        return date.fromisoformat(s)  # YYYY-MM-DD
+    except Exception:
+        return None
+
+
+@bp.get("/exports/satisfaction.csv")
+def export_satisfaction_csv():
+    """
+    Exporta encuestas de satisfacción en CSV.
+    Filtros opcionales (query params):
+      - programa=PEE (string exacto)
+      - respondida_en=Sede|Terreno
+      - date_from=YYYY-MM-DD (fecha_aplicacion >=)
+      - date_to=YYYY-MM-DD   (fecha_aplicacion <=)
+    """
+    programa = request.args.get("programa")
+    respondida_en = request.args.get("respondida_en")
+    df = _parse_date(request.args.get("date_from"))
+    dt = _parse_date(request.args.get("date_to"))
+
+    where = []
+    params = {}
+    if programa:
+        where.append("programa = :programa")
+        params["programa"] = programa
+    if respondida_en:
+        where.append("respondida_en = :respondida_en")
+        params["respondida_en"] = respondida_en
+    if df:
+        where.append("fecha_aplicacion >= :df")
+        params["df"] = df
+    if dt:
+        where.append("fecha_aplicacion <= :dt")
+        params["dt"] = dt
+
+    where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+
+    sql = text(f"""
+        SELECT
+          id,
+          respondida_en,
+          programa,
+          nombre_nna,
+          responsable_aplicacion,
+          fecha_aplicacion,
+          p1_trato, p2_info, p3_tiempo, p4_participacion, p5_resultados, p6_infraestructura,
+          observaciones,
+          resultados_percibidos,  -- JSON
+          firma_nna,
+          creado_en,
+          -- puntaje: 1 por Satisfecho(a), 0 por Insatisfecho(a)
+          (
+            (CASE WHEN lower(p1_trato)           LIKE 'satis%%' THEN 1 ELSE 0 END) +
+            (CASE WHEN lower(p2_info)            LIKE 'satis%%' THEN 1 ELSE 0 END) +
+            (CASE WHEN lower(p3_tiempo)          LIKE 'satis%%' THEN 1 ELSE 0 END) +
+            (CASE WHEN lower(p4_participacion)   LIKE 'satis%%' THEN 1 ELSE 0 END) +
+            (CASE WHEN lower(p5_resultados)      LIKE 'satis%%' THEN 1 ELSE 0 END) +
+            (CASE WHEN lower(p6_infraestructura) LIKE 'satis%%' THEN 1 ELSE 0 END)
+          ) AS puntaje_satisfaccion
+        FROM satisfaction_surveys
+        {where_sql}
+        ORDER BY id DESC
+    """)
+
+    result = db.session.execute(sql, params)
+    cols = result.keys()
+    rows = result.fetchall()
+
+    def _stream():
+        yield ",".join(cols) + "\n"
+        for r in rows:
+            # formatear valores; JSON y fechas en ISO
+            out = []
+            for v in r:
+                if v is None:
+                    out.append("")
+                else:
+                    s = str(v)
+                    # envolver en comillas si contiene coma o salto de línea
+                    if "," in s or "\n" in s or '"' in s:
+                        s = '"' + s.replace('"', '""') + '"'
+                    out.append(s)
+            yield ",".join(out) + "\n"
+
+    return Response(_stream(), mimetype="text/csv")

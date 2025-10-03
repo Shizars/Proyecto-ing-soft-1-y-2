@@ -59,7 +59,42 @@ def r_prt():
 
 @bp.get('/exports/audits.csv')
 def export_csv():
-    sql = """
+    """
+    Exporta auditorías v2 en CSV.
+    Filtros opcionales:
+      - programa=PEE
+      - date_from=YYYY-MM-DD  (filtra por a.fecha_revision >=)
+      - date_to=YYYY-MM-DD    (filtra por a.fecha_revision <=)
+    """
+    from datetime import date
+
+    def _parse_date(s):
+        if not s:
+            return None
+        try:
+            return date.fromisoformat(s)
+        except:
+            return None
+
+    programa = request.args.get("programa")
+    df = _parse_date(request.args.get("date_from"))
+    dt = _parse_date(request.args.get("date_to"))
+
+    where = []
+    params = {}
+    if programa:
+        where.append("a.programa = :programa")
+        params["programa"] = programa
+    if df:
+        where.append("a.fecha_revision >= :df")
+        params["df"] = df
+    if dt:
+        where.append("a.fecha_revision <= :dt")
+        params["dt"] = dt
+
+    where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+
+    sql = f"""
         SELECT a.id as audit_id, a.programa, a.nombre_revisor, a.fecha_revision,
                a.nombre_nna, a.fecha_ingreso,
                e.orden_ingreso, e.informe_derivacion, e.cert_nacimiento, e.carta_compromiso,
@@ -69,15 +104,19 @@ def export_csv():
                u.tribunal_fecha_emision, u.tribunal_actualizado, u.calificacion_actualizacion, u.observaciones_actualizacion
         FROM audits_v2 a
         LEFT JOIN audit_v2_existence e ON e.audit_id = a.id
-        LEFT JOIN audit_v2_updates u ON u.audit_id = a.id
+        LEFT JOIN audit_v2_updates   u ON u.audit_id = a.id
+        {where_sql}
         ORDER BY a.id DESC
     """
-    result = db.session.execute(sql)
+    result = db.session.execute(sql, params)
     cols = result.keys()
     rows = result.fetchall()
 
     def _stream():
         yield ",".join(cols) + "\n"
         for r in rows:
-            yield ",".join("" if v is None else str(v) for v in r) + "\n"
+            yield ",".join("" if v is None else
+                           ('"'+str(v).replace('"', '""')+'"' if ("," in str(v)
+                            or "\n" in str(v) or '"' in str(v)) else str(v))
+                           for v in r) + "\n"
     return Response(_stream(), mimetype='text/csv')
