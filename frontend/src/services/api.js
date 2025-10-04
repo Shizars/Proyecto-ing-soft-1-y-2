@@ -59,6 +59,27 @@ export const unarchiveDocument = (docId) =>
 export const renameDocument = (docId, newName) =>
   api.put(`/documents/${docId}/rename`, { titulo: newName });
 
+// Evidencias
+
+export const listEvidences = (docId) => {
+  return api.get(`/documents/${docId}/evidences`);
+
+};
+
+// Evidencias: listar y subir
+
+// === Evidencias ===
+export const fetchEvidences = (docId) =>
+  api.get(`/documents/${docId}/evidences`);
+
+export const uploadEvidence = (docId, file) => {
+  const fd = new FormData();
+  fd.append("file", file);              // 👈 clave: "file"
+  return api.post(`/documents/${docId}/evidences`, fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
 
 
 export default api;

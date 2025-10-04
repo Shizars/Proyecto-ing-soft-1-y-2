@@ -24,6 +24,7 @@ import { deleteDocument } from "../services/api";
 import { toggleFavorite } from "../services/api";
 import { archiveDocument, unarchiveDocument } from "../services/api";
 import { renameDocument } from "../services/api";
+import EvidenceModal from "../componentes/EvidenceModal";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -42,6 +43,18 @@ export default function DashboardPage() {
 
   const [filterType, setFilterType] = useState("nombre");
   const [filterValue, setFilterValue] = useState("");
+
+  const [evidOpen, setEvidOpen] = useState(false);
+  const [evidDoc, setEvidDoc] = useState(null);
+
+  const openEvidences = (doc) => {
+    setEvidDoc(doc);
+    setEvidOpen(true);
+  };
+  const closeEvidences = () => {
+    setEvidOpen(false);
+    setEvidDoc(null);
+  };
 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -730,6 +743,12 @@ export default function DashboardPage() {
                   >
                     <i className="fas fa-edit" />
                   </button>
+                  <button
+                    onClick={() => openEvidences(doc)}
+                    title="Evidencias complementarias"
+                  >
+                    <i className="fas fa-paperclip" />
+                  </button>
 
                   {/* Archivar / Desarchivar */}
                   {doc.archived ? (
@@ -879,6 +898,7 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+      <EvidenceModal isOpen={evidOpen} doc={evidDoc} onClose={closeEvidences} />
 
       {/* Modal subir documento */}
       {modalOpen && (
