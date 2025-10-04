@@ -510,7 +510,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="6rHXWFk7S_0ijRq_aal1-141" value="Permite cambiar el nombre a un documento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;" vertex="1" parent="1">
-          <mxGeometry x="880" y="1970" width="120" height="60" as="geometry" />
+          <mxGeometry x="980" y="1930" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6rHXWFk7S_0ijRq_aal1-142" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
@@ -526,7 +526,7 @@
         </mxCell>
         <mxCell id="6rHXWFk7S_0ijRq_aal1-146" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="940" y="1970" as="targetPoint" />
+            <mxPoint x="970" y="1970" as="targetPoint" />
             <Array as="points">
               <mxPoint x="940" y="1970" />
             </Array>
@@ -542,27 +542,17 @@
         <mxCell id="QndJjB74fjjrvxEo3scW-2" value="Cerrar sesion" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;" vertex="1" parent="1">
           <mxGeometry x="1370" y="810" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="QndJjB74fjjrvxEo3scW-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="6rHXWFk7S_0ijRq_aal1-4">
+        <mxCell id="ARgofL0WLmcsGQmcd02r-1" value="Permite restaurar documentos desde la papelera" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;" vertex="1" parent="1">
+          <mxGeometry x="780" y="1930" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ARgofL0WLmcsGQmcd02r-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1140" y="640" as="targetPoint" />
-            <mxPoint x="799" y="560.74" as="sourcePoint" />
+            <mxPoint x="900" y="1970" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="936.25" y="1970" />
+            </Array>
+            <mxPoint x="936.25" y="1670" as="sourcePoint" />
           </mxGeometry>
-        </mxCell>
-        <mxCell id="QndJjB74fjjrvxEo3scW-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="QndJjB74fjjrvxEo3scW-6">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1270" y="682.1599999999999" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="QndJjB74fjjrvxEo3scW-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="QndJjB74fjjrvxEo3scW-6">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1140" y="750" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="QndJjB74fjjrvxEo3scW-6" value="Admin&lt;div&gt;V_AdminUsuarios&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ba1e2;fontColor=#ffffff;strokeColor=#006EAF;" vertex="1" parent="1">
-          <mxGeometry x="1080" y="652.16" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="QndJjB74fjjrvxEo3scW-8" value="Gestiona usuarios activos e inactivos" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;" vertex="1" parent="1">
-          <mxGeometry x="1270" y="652.16" width="120" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
