@@ -6,7 +6,7 @@ import uuid
 from pathlib import Path
 from datetime import datetime
 
-from flask import Blueprint, request, send_file, jsonify
+from flask import Blueprint, request, send_file
 from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity,
@@ -22,14 +22,12 @@ from backend.models.shared_link import SharedLink
 from backend.models.document_comment import DocumentComment
 from backend.schemas.document_comment_schema import DocumentCommentSchema
 
-# --- Evidencias (modelo/esquema simples) ---
+# Evidencias
 from backend.models.evidence import Evidence
 from backend.schemas.evidence_schema import evidence_schema, evidences_schema
 
-from backend.services.tag_service import (
-    add_tags_to_document,
-    remove_tag_from_document,
-)
+# Tags
+from backend.services.tag_service import add_tags_to_document, remove_tag_from_document
 
 docs_bp = Blueprint("documents", __name__, url_prefix="/api/documents")
 
@@ -41,13 +39,18 @@ comments_schema = DocumentCommentSchema(many=True)
 # Extensiones permitidas para documentos principales
 ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "xlsx"}
 
-# Extensiones permitidas para evidencias (sumamos imágenes)
+# Extensiones permitidas para evidencias (incluye imágenes)
 ALLOWED_EVIDENCES = {"pdf", "doc", "docx", "xls", "xlsx", "png", "jpg", "jpeg"}
 
 # Carpeta de evidencias: <UPLOAD_DIR>/evidences
 EVIDENCE_DIR: Path = (UPLOAD_DIR / "evidences")
 EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
 
+# Carpetas fijas permitidas para archivar
+ALLOWED_FOLDERS = {"F-SGC-033-B", "F-SGC-036"}
+
+
+# ------------------ Helpers ------------------
 
 def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -58,10 +61,20 @@ def allowed_evidence(filename: str) -> bool:
 
 
 def _build_public_url(doc: Document) -> str:
+    """
+    Construye URL pública a partir de file_path guardado (relativo a /uploads).
+    """
     relative = doc.file_path.replace("\\", "/")
     if relative.startswith("uploads/"):
         relative = relative[len("uploads/"):]
     return request.url_root.rstrip("/") + "/uploads/" + relative
+
+
+def _get_owned_doc_or_404(doc_id: int, user_id: int) -> Document | None:
+    """
+    Obtiene un doc por id y dueño. Devuelve None si no existe.
+    """
+    return Document.query.filter_by(id=doc_id, owner_id=user_id).first()
 
 
 # ===================== DOCUMENTOS =====================
@@ -75,13 +88,13 @@ def upload():
     file_obj = request.files["file"]
     if not allowed_file(file_obj.filename):
         return {
-            "error": "Formato de archivo no permitido. Solo PDF, DOC, DOCX y XLSX son aceptados."
+            "error": "Formato de archivo no permitido. Solo PDF, DOC, DOCX y XLSX."
         }, 400
 
     user_id = get_jwt_identity()
     categoria = request.form.get("categoria", "General")
 
-    # Duplicado por nombre (por usuario)
+    # Evitar duplicado por nombre (por usuario), a menos que allow_duplicate=1/true
     allow_dup = request.form.get("allow_duplicate") in ("1", "true", "True")
     existing = Document.query.filter_by(
         owner_id=user_id, titulo=file_obj.filename).first()
@@ -99,8 +112,19 @@ def upload():
 @docs_bp.get("/")
 @jwt_required()
 def listar():
+    """
+    Lista documentos del usuario. Por defecto excluye papelera.
+    ?include_deleted=1 para incluir los eliminados (soft delete).
+    """
     user_id = get_jwt_identity()
-    docs = Document.query.filter_by(owner_id=user_id).all()
+    include_deleted = request.args.get(
+        "include_deleted") in ("1", "true", "True")
+
+    q = Document.query.filter_by(owner_id=user_id)
+    if not include_deleted:
+        q = q.filter(Document.deleted_at.is_(None))
+
+    docs = q.all()
     return docs_schema.dump(docs), 200
 
 
@@ -108,25 +132,20 @@ def listar():
 @jwt_required()
 def get_document_url(doc_id: int):
     user_id = get_jwt_identity()
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
-    relative_path = doc.file_path.replace("\\", "/")
-    if relative_path.startswith("uploads/"):
-        relative_path = relative_path[len("uploads/"):]
-
-    url = request.url_root.rstrip("/") + "/uploads/" + relative_path
-    return {"url": url}, 200
+    return {"url": _build_public_url(doc)}, 200
 
 
 @docs_bp.get("/<int:doc_id>/download")
 @jwt_required()
 def download(doc_id: int):
     user_id = get_jwt_identity()
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
     abs_path: Path = (UPLOAD_DIR.parent / doc.file_path).resolve()
     if not abs_path.exists():
@@ -142,9 +161,12 @@ def download(doc_id: int):
 
 # ===================== ENLACE COMPARTIDO =====================
 
-@docs_bp.get("/shared/<token>/url")  # sin @jwt_required
+@docs_bp.get("/shared/<token>/url")   # sin @jwt_required
 def obtener_url_compartida(token: str):
-    # Si viene JWT, bien; si no, seguimos igual
+    """
+    Devuelve URL pública del archivo a partir de un token de share válido y no vencido.
+    Acepta JWT opcional (no requerido).
+    """
     try:
         verify_jwt_in_request(optional=True)
     except Exception:
@@ -157,8 +179,8 @@ def obtener_url_compartida(token: str):
         return {"error": "Enlace vencido"}, 410
 
     doc = Document.query.get(link.document_id)
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
     return {"url": _build_public_url(doc)}, 200
 
@@ -167,9 +189,9 @@ def obtener_url_compartida(token: str):
 @jwt_required()
 def crear_link_compartido(doc_id: int):
     user_id = get_jwt_identity()
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
     link = SharedLink.new(document_id=doc.id, owner_id=user_id)
     full_url = request.url_root.rstrip(
@@ -182,39 +204,37 @@ def crear_link_compartido(doc_id: int):
 @docs_bp.post("/<int:doc_id>/tags")
 @jwt_required()
 def set_tags(doc_id: int):
+    user_id = get_jwt_identity()
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
+
     tag_names = request.json.get("tags", [])
-    doc = add_tags_to_document(doc_id, tag_names)
-    return doc_schema.dump(doc), 200
+    saved = add_tags_to_document(doc_id, tag_names)
+    return doc_schema.dump(saved), 200
 
 
 @docs_bp.delete("/<int:doc_id>/tags/<int:tag_id>")
 @jwt_required()
 def delete_tag(doc_id: int, tag_id: int):
-    doc = remove_tag_from_document(doc_id, tag_id)
-    return doc_schema.dump(doc), 200
-
-
-# ===================== BORRAR / FAVORITOS =====================
-
-@docs_bp.delete("/<int:doc_id>")
-@jwt_required()
-def delete_document(doc_id: int):
     user_id = get_jwt_identity()
-    from backend.services.document_service import delete_document_for_owner
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
-    ok = delete_document_for_owner(doc_id, user_id)
-    if not ok:
-        return {"error": "Documento no encontrado o sin permisos"}, 404
-    return {"msg": "Documento eliminado"}, 200
+    saved = remove_tag_from_document(doc_id, tag_id)
+    return doc_schema.dump(saved), 200
 
+
+# ===================== FAVORITOS =====================
 
 @docs_bp.post("/<int:doc_id>/favorite/toggle")
 @jwt_required()
 def toggle_favorite(doc_id: int):
     user_id = get_jwt_identity()
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
     doc.is_favorite = not bool(doc.is_favorite)
     db.session.commit()
@@ -224,12 +244,12 @@ def toggle_favorite(doc_id: int):
 @docs_bp.post("/<int:doc_id>/favorite")
 @jwt_required()
 def set_favorite(doc_id: int):
-    want = bool(request.json.get("is_favorite", True))
     user_id = get_jwt_identity()
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
+    want = bool(request.json.get("is_favorite", True))
     doc.is_favorite = want
     db.session.commit()
     return {"id": doc.id, "is_favorite": doc.is_favorite}, 200
@@ -239,7 +259,12 @@ def set_favorite(doc_id: int):
 @jwt_required()
 def list_favorites():
     user_id = get_jwt_identity()
-    docs = Document.query.filter_by(owner_id=user_id, is_favorite=True).all()
+    docs = (
+        Document.query
+        .filter_by(owner_id=user_id, is_favorite=True)
+        .filter(Document.deleted_at.is_(None))  # no mostrar de papelera
+        .all()
+    )
     return docs_schema.dump(docs), 200
 
 
@@ -249,12 +274,13 @@ def list_favorites():
 @jwt_required()
 def list_comments(doc_id: int):
     user_id = get_jwt_identity()
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
     rows = (
-        DocumentComment.query.filter_by(document_id=doc_id)
+        DocumentComment.query
+        .filter_by(document_id=doc_id)
         .order_by(DocumentComment.created_at.desc())
         .all()
     )
@@ -265,9 +291,9 @@ def list_comments(doc_id: int):
 @jwt_required()
 def add_comment(doc_id: int):
     user_id = get_jwt_identity()
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
     body = (request.json or {}).get("body", "").strip()
     if not body:
@@ -289,8 +315,12 @@ def delete_comment(comment_id: int):
         return {"error": "Comentario no encontrado"}, 404
 
     doc = Document.query.get(c.document_id)
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
     if c.owner_id != user_id and doc.owner_id != user_id:
         return {"error": "Sin permisos para eliminar"}, 403
+    if doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
     db.session.delete(c)
     db.session.commit()
@@ -299,22 +329,18 @@ def delete_comment(comment_id: int):
 
 # ===================== ARCHIVO/CARPETAS =====================
 
-ALLOWED_FOLDERS = {"F-SGC-033-B", "F-SGC-036"}
-
-
 @docs_bp.patch("/<int:doc_id>/archive")
 @jwt_required()
 def archive_document(doc_id: int):
     user_id = get_jwt_identity()
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
     data = request.get_json() or {}
     folder_code = (data.get("folder_code") or "").strip()
     if folder_code not in ALLOWED_FOLDERS:
         return {"error": "Carpeta inválida"}, 400
-
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
 
     doc.archived = True
     doc.folder_code = folder_code
@@ -326,10 +352,9 @@ def archive_document(doc_id: int):
 @jwt_required()
 def unarchive_document(doc_id: int):
     user_id = get_jwt_identity()
-
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
     doc.archived = False
     doc.folder_code = None
@@ -343,15 +368,14 @@ def unarchive_document(doc_id: int):
 @jwt_required()
 def rename_document(doc_id: int):
     user_id = get_jwt_identity()
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
+
     data = request.json or {}
     nuevo_nombre = (data.get("titulo") or "").strip()
-
     if not nuevo_nombre:
         return {"error": "Se requiere un nuevo nombre"}, 400
-
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
 
     doc.titulo = nuevo_nombre
     db.session.commit()
@@ -363,11 +387,13 @@ def rename_document(doc_id: int):
 @docs_bp.post("/<int:doc_id>/evidences")
 @jwt_required()
 def upload_evidence(doc_id: int):
-    """Sube 1 archivo de evidencia y lo asocia al documento."""
+    """
+    Sube 1 archivo de evidencia y lo asocia al documento.
+    """
     user_id = get_jwt_identity()
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
     f = request.files.get("file")
     if not f:
@@ -393,12 +419,69 @@ def upload_evidence(doc_id: int):
 @docs_bp.get("/<int:doc_id>/evidences")
 @jwt_required()
 def list_evidences(doc_id: int):
-    """Lista evidencias asociadas a un documento del usuario."""
+    """
+    Lista evidencias asociadas a un documento del usuario.
+    """
     user_id = get_jwt_identity()
-    doc = Document.query.filter_by(id=doc_id, owner_id=user_id).first()
-    if not doc:
-        return {"error": "Documento no encontrado"}, 404
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
 
     rows = Evidence.query.filter_by(document_id=doc.id).order_by(
         Evidence.uploaded_at.desc()).all()
     return {"items": evidences_schema.dump(rows)}, 200
+
+
+# ===================== PAPELERA (Soft Delete) =====================
+
+@docs_bp.patch("/<int:doc_id>/trash")
+@jwt_required()
+def move_to_trash(doc_id: int):
+    """
+    Envia el documento a papelera (soft delete).
+    """
+    user_id = get_jwt_identity()
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+    if doc.deleted_at:
+        return {"msg": "Ya estaba en la papelera"}, 200
+
+    doc.deleted_at = datetime.utcnow()
+    db.session.commit()
+    return {"id": doc.id, "deleted_at": doc.deleted_at.isoformat()}, 200
+
+
+@docs_bp.patch("/<int:doc_id>/restore")
+@jwt_required()
+def restore_from_trash(doc_id: int):
+    """
+    Restaura un documento desde la papelera.
+    """
+    user_id = get_jwt_identity()
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc:
+        return {"error": "Documento no encontrado"}, 404
+    if not doc.deleted_at:
+        return {"error": "El documento no está en la papelera"}, 400
+
+    doc.deleted_at = None
+    db.session.commit()
+    return {"id": doc.id, "deleted_at": None}, 200
+
+
+# ===================== BORRADO PERMANENTE =====================
+
+@docs_bp.delete("/<int:doc_id>")
+@jwt_required()
+def delete_document(doc_id: int):
+    """
+    Borrado permanente (archivo + DB). Recomendado solo desde 'papelera'.
+    """
+    user_id = get_jwt_identity()
+    from backend.services.document_service import delete_document_for_owner
+
+    ok = delete_document_for_owner(doc_id, user_id)
+    if not ok:
+        return {"error": "Documento no encontrado o sin permisos"}, 404
+    return {"msg": "Documento eliminado"}, 200

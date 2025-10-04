@@ -25,6 +25,9 @@ import { toggleFavorite } from "../services/api";
 import { archiveDocument, unarchiveDocument } from "../services/api";
 import { renameDocument } from "../services/api";
 import EvidenceModal from "../componentes/EvidenceModal";
+import { listDocuments } from "../services/api";
+import { restoreDocument } from "../services/api";
+import { trashDocument } from "../services/api";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -40,6 +43,7 @@ export default function DashboardPage() {
   const [selectedFolder, setSelectedFolder] = useState(null); // ej: "F-SGC-033-B" | "F-SGC-036" | null
   const [showArchived, setShowArchived] = useState(false); // ver archivados o activos
   const [openArchiveId, setOpenArchiveId] = useState(null);
+  const [showDeleted, setShowDeleted] = useState(false);
 
   const [filterType, setFilterType] = useState("nombre");
   const [filterValue, setFilterValue] = useState("");
@@ -164,16 +168,20 @@ export default function DashboardPage() {
   }, [darkMode]);
 
   /* ---------- cargar docs ---------- */
-  useEffect(() => {
-    loadDocuments();
-  }, []);
+  /* ---------- cargar docs ---------- */
   const loadDocuments = async () => {
     try {
-      setDocuments((await api.get("/documents/")).data);
+      const res = await listDocuments(showDeleted); // usa el servicio que recibe el flag
+      setDocuments(res.data);
     } catch (err) {
       console.error("Load documents error:", err);
     }
   };
+
+  // vuelve a cargar docs cada vez que cambie showDeleted
+  useEffect(() => {
+    loadDocuments();
+  }, [showDeleted]);
 
   /* ---------- helpers ---------- */
   const openModal = () => setModalOpen(true);
@@ -640,6 +648,14 @@ export default function DashboardPage() {
             <i className="fas fa-box-archive" />{" "}
             {showArchived ? "Archivados" : "Activos"}
           </button>
+          <button
+            className={`chip-toggle ${showDeleted ? "on" : ""}`}
+            onClick={() => setShowDeleted((v) => !v)}
+            title={showDeleted ? "Ver documentos activos" : "Ver papelera"}
+          >
+            <i className="fas fa-trash-restore" /> Papelera
+          </button>
+
           <div className="filter-controls">
             <select
               value={filterType}
@@ -718,129 +734,201 @@ export default function DashboardPage() {
                 >
                   <i className="fas fa-edit" />
                 </button>
-
+                {/* === Acciones de documento === */}
                 <div className="doc-actions">
                   {/* Renombrar */}
-                  <button
-                    onClick={() => {
-                      const nuevo = prompt(
-                        "Nuevo nombre para el documento:",
-                        doc.titulo
-                      );
-                      if (nuevo && nuevo.trim() !== "") {
-                        renameDocument(doc.id, nuevo.trim())
-                          .then(() => loadDocuments())
-                          .catch((err) => {
-                            console.error(
-                              "Rename error:",
-                              err?.response || err
-                            );
-                            alert("No se pudo renombrar el documento.");
-                          });
-                      }
-                    }}
-                    title="Renombrar documento"
-                  >
-                    <i className="fas fa-edit" />
-                  </button>
-                  <button
-                    onClick={() => openEvidences(doc)}
-                    title="Evidencias complementarias"
-                  >
-                    <i className="fas fa-paperclip" />
-                  </button>
-
-                  {/* Archivar / Desarchivar */}
-                  {doc.archived ? (
+                  {!doc.deleted_at && (
                     <button
-                      onClick={() => handleUnarchive(doc)}
-                      title="Quitar de la carpeta"
+                      onClick={() => {
+                        const nuevo = prompt(
+                          "Nuevo nombre para el documento:",
+                          doc.titulo
+                        );
+                        if (nuevo && nuevo.trim() !== "") {
+                          renameDocument(doc.id, nuevo.trim())
+                            .then(() => loadDocuments())
+                            .catch((err) => {
+                              console.error(
+                                "Rename error:",
+                                err?.response || err
+                              );
+                              alert("No se pudo renombrar el documento.");
+                            });
+                        }
+                      }}
+                      title="Renombrar documento"
                     >
-                      <i className="fas fa-box-open" />
+                      <i className="fas fa-edit" />
                     </button>
-                  ) : (
-                    <div className="archive-dropdown" data-docid={doc.id}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation(); // evita cierres por burbujeo
-                          setOpenArchiveId(
-                            openArchiveId === doc.id ? null : doc.id
-                          );
-                        }}
-                        title="Archivar en carpeta"
-                      >
-                        <i className="fas fa-box-archive" />
-                      </button>
-
-                      {openArchiveId === doc.id && (
-                        <div
-                          className="archive-menu"
-                          onMouseDown={(e) => e.stopPropagation()} // no cerrar al click interno
-                        >
-                          <button
-                            onClick={() => handleArchive(doc, "F-SGC-033-B")}
-                          >
-                            F-SGC-033-B
-                          </button>
-                          <button
-                            onClick={() => handleArchive(doc, "F-SGC-036")}
-                          >
-                            F-SGC-036
-                          </button>
-                        </div>
-                      )}
-                    </div>
                   )}
 
-                  {/* Favoritos */}
-                  <button
-                    onClick={() => handleToggleFavorite(doc)}
-                    title={
-                      doc.is_favorite
-                        ? "Quitar de favoritos"
-                        : "Marcar como favorito"
-                    }
-                    className={`fav-btn ${doc.is_favorite ? "on" : ""}`}
-                  >
-                    <i
-                      className={
-                        doc.is_favorite ? "fas fa-star" : "far fa-star"
+                  {/* Evidencias */}
+                  {!doc.deleted_at && (
+                    <button
+                      onClick={() => openEvidences(doc)}
+                      title="Evidencias complementarias"
+                    >
+                      <i className="fas fa-paperclip" />
+                    </button>
+                  )}
+
+                  {/* Archivar / Desarchivar (oculto en papelera) */}
+                  {!doc.deleted_at &&
+                    (doc.archived ? (
+                      <button
+                        onClick={() => handleUnarchive(doc)}
+                        title="Quitar de la carpeta"
+                      >
+                        <i className="fas fa-box-open" />
+                      </button>
+                    ) : (
+                      <div className="archive-dropdown" data-docid={doc.id}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenArchiveId(
+                              openArchiveId === doc.id ? null : doc.id
+                            );
+                          }}
+                          title="Archivar en carpeta"
+                        >
+                          <i className="fas fa-box-archive" />
+                        </button>
+                        {openArchiveId === doc.id && (
+                          <div
+                            className="archive-menu"
+                            onMouseDown={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => handleArchive(doc, "F-SGC-033-B")}
+                            >
+                              F-SGC-033-B
+                            </button>
+                            <button
+                              onClick={() => handleArchive(doc, "F-SGC-036")}
+                            >
+                              F-SGC-036
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                  {/* === Papelera / Restaurar === */}
+                  {!doc.deleted_at ? (
+                    // Enviar a papelera (soft delete)
+                    <button
+                      onClick={async () => {
+                        if (
+                          !window.confirm(
+                            `Enviar "${doc.titulo}" a la papelera?`
+                          )
+                        )
+                          return;
+                        try {
+                          await trashDocument(doc.id);
+                          await loadDocuments();
+                        } catch (e) {
+                          console.error(e);
+                          alert("No se pudo mover a papelera.");
+                        }
+                      }}
+                      title="Enviar a papelera"
+                      className="danger"
+                    >
+                      <i className="fas fa-trash-alt" />
+                    </button>
+                  ) : (
+                    <>
+                      {/* Restaurar desde papelera */}
+                      <button
+                        onClick={async () => {
+                          try {
+                            await restoreDocument(doc.id);
+                            await loadDocuments();
+                          } catch (e) {
+                            console.error(e);
+                            alert("No se pudo restaurar el documento.");
+                          }
+                        }}
+                        title="Restaurar"
+                      >
+                        <i className="fas fa-undo" />
+                      </button>
+
+                      {/* Eliminar DEFINITIVO (solo visible en papelera) */}
+                      <button
+                        onClick={async () => {
+                          if (
+                            !window.confirm(
+                              `Eliminar definitivamente "${doc.titulo}"?`
+                            )
+                          )
+                            return;
+                          try {
+                            await deleteDocument(doc.id);
+                            await loadDocuments();
+                          } catch (err) {
+                            console.error(
+                              "Delete error:",
+                              err?.response || err
+                            );
+                            alert(
+                              err?.response?.data?.error ||
+                                "No se pudo eliminar el documento."
+                            );
+                          }
+                        }}
+                        title="Eliminar definitivamente"
+                        className="danger"
+                      >
+                        <i className="fas fa-times-circle" />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Favoritos (no aplica en papelera) */}
+                  {!doc.deleted_at && (
+                    <button
+                      onClick={() => handleToggleFavorite(doc)}
+                      title={
+                        doc.is_favorite
+                          ? "Quitar de favoritos"
+                          : "Marcar como favorito"
                       }
-                    />
-                  </button>
+                      className={`fav-btn ${doc.is_favorite ? "on" : ""}`}
+                    >
+                      <i
+                        className={
+                          doc.is_favorite ? "fas fa-star" : "far fa-star"
+                        }
+                      />
+                    </button>
+                  )}
 
-                  {/* Descargar */}
-                  <button
-                    onClick={() => handleDownload(doc)}
-                    title="Descargar documento"
-                  >
-                    <i className="fas fa-download" />
-                  </button>
-
-                  {/* Eliminar */}
-                  <button
-                    onClick={() => handleDelete(doc)}
-                    title="Eliminar documento"
-                    className="danger"
-                  >
-                    <i className="fas fa-trash" />
-                  </button>
-
-                  {/* Ver */}
-                  <button
-                    onClick={() => handlePreview(doc)}
-                    title="Ver documento"
-                  >
-                    <i className="fas fa-eye" />
-                  </button>
-
-                  {/* Compartir */}
-                  <button
-                    onClick={() => handleShare(doc)}
-                    title="Copiar enlace"
-                  >
-                    <i className="fas fa-link" />
-                  </button>
+                  {/* Descargar / Ver / Compartir (no aplica en papelera) */}
+                  {!doc.deleted_at && (
+                    <>
+                      <button
+                        onClick={() => handleDownload(doc)}
+                        title="Descargar documento"
+                      >
+                        <i className="fas fa-download" />
+                      </button>
+                      <button
+                        onClick={() => handlePreview(doc)}
+                        title="Ver documento"
+                      >
+                        <i className="fas fa-eye" />
+                      </button>
+                      <button
+                        onClick={() => handleShare(doc)}
+                        title="Copiar enlace"
+                      >
+                        <i className="fas fa-link" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

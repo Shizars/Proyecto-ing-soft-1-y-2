@@ -1,8 +1,7 @@
+# backend/models/document.py
 from datetime import datetime
 from backend.extensions import db
 from .document_tags import document_tags
-
-# document.py
 
 
 class Document(db.Model):
@@ -12,24 +11,29 @@ class Document(db.Model):
     titulo = db.Column(db.String(200), nullable=False)
     file_path = db.Column(db.String(255), nullable=False)
     categoria = db.Column(db.String(50), index=True)
-    # admite “application/pdf” si hiciera falta
-    formato = db.Column(db.String(20))
+    formato = db.Column(db.String(20))  # ej: "application/pdf"
     fecha_subida = db.Column(db.DateTime, default=datetime.utcnow)
+
     is_favorite = db.Column(db.Boolean, nullable=False,
                             server_default="0", index=True)
 
     archived = db.Column(db.Boolean, nullable=False,
                          server_default="0", index=True)
-    # ej: "F-SGC-033-B", "F-SGC-036"
+    # Carpeta fija: "F-SGC-033-B", "F-SGC-036"
     folder_code = db.Column(db.String(50), index=True)
 
+    # 🔹 Nuevo: campo para soft delete (papelera)
+    deleted_at = db.Column(db.DateTime, nullable=True, index=True)
+
+    # Relaciones
     owner_id = db.Column(
         db.Integer,
         db.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
     owner = db.relationship(
-        "User", back_populates="documentos", passive_deletes=True)
+        "User", back_populates="documentos", passive_deletes=True
+    )
 
     tags = db.relationship(
         "Tag",
@@ -44,6 +48,10 @@ class Document(db.Model):
         db.Index("idx_documents_owner", "owner_id"),
         db.Index("idx_documents_categoria", "categoria"),
     )
+
+    @property
+    def is_deleted(self):
+        return self.deleted_at is not None
 
     def __repr__(self):
         return f"<Document {self.titulo}>"

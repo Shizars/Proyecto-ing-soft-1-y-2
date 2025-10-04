@@ -1169,3 +1169,8 @@
 @media (max-width: 820px){
   .doc-card { grid-template-columns: 48px 1fr auto; }
 }
+
+.doc-card.deleted {
+  opacity: .6;
+  filter: grayscale(0.2);
+}

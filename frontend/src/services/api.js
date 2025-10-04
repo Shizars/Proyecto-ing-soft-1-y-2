@@ -82,5 +82,17 @@ export const uploadEvidence = (docId, file) => {
 
 
 
+export const trashDocument = (id) =>
+  api.patch(`/documents/${id}/trash`);
+
+export const restoreDocument = (id) =>
+  api.patch(`/documents/${id}/restore`);
+
+export const listDocuments = (includeDeleted = false) =>
+  api.get(`/documents/?include_deleted=${includeDeleted ? "1" : "0"}`);
+
+
+
+
 export default api;
 
