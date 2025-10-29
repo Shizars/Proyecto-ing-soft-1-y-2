@@ -1174,3 +1174,101 @@
   opacity: .6;
   filter: grayscale(0.2);
 }
+
+
+/* ================== Tokens mínimos ================== */
+:root{
+  --surface: var(--bg-card, #fff);
+  --border:  var(--card-border, #e5e7eb);
+  --shadow:  0 8px 22px rgba(0,0,0,.06);
+  --radius:  14px;
+  --pad:     16px;
+  --gap:     16px;
+}
+
+/* ================== Contenedor principal ================== */
+.content{
+  max-width: 1200px;      /* centra contenido y evita líneas larguísimas */
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+/* ================== Tarjeta base ================== */
+.card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--pad);
+}
+
+/* Mantén tu hero/contenedor resumen como tarjeta estándar */
+.overview-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: var(--gap); /* reduce separación */
+}
+
+/* ================== Grid de widgets ================== */
+.widgets-grid{
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--gap);
+  align-items: stretch;
+}
+
+/* 3 col ≥ 1200px, 2 col entre 900–1199, 1 col < 900 */
+@media (min-width: 1200px){
+  .widgets-grid > .widget{ grid-column: span 4; } /* 3 por fila */
+}
+@media (min-width: 900px) and (max-width: 1199.98px){
+  .widgets-grid > .widget{ grid-column: span 6; } /* 2 por fila */
+}
+@media (max-width: 899.98px){
+  .widgets-grid > .widget{ grid-column: 1 / -1; } /* 1 por fila */
+}
+
+/* ================== Normalizaciones internas ================== */
+/* quita márgenes “fantasma” de componentes hijos */
+.widgets-grid > *{ margin: 0 !important; }
+.widgets-grid .widget > *{ margin: 0 !important; }
+
+/* librerías de charts a veces ponen margen propio */
+.recharts-wrapper, .recharts-responsive-container{
+  margin: 0 !important;
+}
+
+/* evita overflow y asegura que el gráfico use su tarjeta */
+.widget canvas,
+.widget svg{
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Títulos dentro de tarjetas */
+.widget h3, .widget h4{
+  margin: 0 0 8px 0;
+  font-weight: 700;
+}
+
+/* ================== Secciones posteriores ================== */
+/* ajusta separación con la sección de documentos */
+.files-section{
+  margin-top: 24px;
+}
+
+/* ================== Dark mode coherente ================== */
+.dark .card,
+.dark .overview-card{
+  background: #0f1521;
+  border-color: #232a38;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+}
+
+
+
+

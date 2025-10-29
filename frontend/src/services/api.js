@@ -92,6 +92,8 @@ export const listDocuments = (includeDeleted = false) =>
   api.get(`/documents/?include_deleted=${includeDeleted ? "1" : "0"}`);
 
 
+export const bulkDownload = (ids) =>
+  api.post(`/documents/bulk-download`, { ids }, { responseType: "blob" });
 
 
 export default api;

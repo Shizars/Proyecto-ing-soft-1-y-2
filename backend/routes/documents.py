@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import os
+from io import BytesIO
+import tempfile
+import zipfile
 import uuid
 from pathlib import Path
 from datetime import datetime
@@ -485,3 +488,124 @@ def delete_document(doc_id: int):
     if not ok:
         return {"error": "Documento no encontrado o sin permisos"}, 404
     return {"msg": "Documento eliminado"}, 200
+
+
+@docs_bp.post("/bulk-download")
+@jwt_required()
+def bulk_download():
+    """
+    Recibe: { "ids": [int, ...] }
+    - Máx 4 documentos
+    - Total <= 100 MB
+    - Excluye README (titulo o nombre base 'readme' con cualquier extensión)
+    - Omite eliminados (papelera) y valida pertenencia
+    """
+    user_id = get_jwt_identity()
+    data = request.get_json() or {}
+    ids = data.get("ids", [])
+    if not isinstance(ids, list) or not ids:
+        return {"error": "Debes enviar una lista 'ids' con al menos un id."}, 400
+
+    # Limite de cantidad
+    if len(ids) > 4:
+        return {"error": "Límite de 4 archivos por descarga masiva."}, 400
+
+    # Buscar documentos pertenecientes al usuario y no eliminados
+    docs = (
+        Document.query
+        .filter(Document.id.in_(ids), Document.owner_id == user_id, Document.deleted_at.is_(None))
+        .all()
+    )
+    if not docs:
+        return {"error": "No se encontraron documentos válidos."}, 404
+
+    # Excluir README (por titulo o basename del file_path)
+    def is_readme(d: Document) -> bool:
+        base_titulo = Path(d.titulo).stem.lower() if d.titulo else ""
+        base_file = Path(d.file_path).stem.lower() if d.file_path else ""
+        return base_titulo == "readme" or base_file == "readme"
+
+    filtered = [d for d in docs if not is_readme(d)]
+    skipped = [d.titulo for d in docs if d not in filtered]
+
+    if not filtered:
+        return {"error": "Todos los archivos seleccionados fueron excluidos (README)."}, 400
+
+    # Paths absolutos y validación de existencia
+    items = []
+    total_size = 0
+    for d in filtered:
+        abs_path = (UPLOAD_DIR.parent / d.file_path).resolve()
+        # seguridad: archivo debe estar dentro de /uploads
+        if UPLOAD_DIR.parent.resolve() not in abs_path.parents or not abs_path.exists():
+            continue
+        sz = abs_path.stat().st_size
+        total_size += sz
+        items.append((d, abs_path, sz))
+
+    if not items:
+        return {"error": "Archivos no disponibles físicamente."}, 404
+
+    # Límite de tamaño total: 100 MB
+    MAX_TOTAL = 100 * 1024 * 1024
+    if total_size > MAX_TOTAL:
+        return {"error": "El tamaño total excede 100 MB."}, 413
+
+    # Crear ZIP temporal (evitamos memory spike)
+    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    zip_name = f"documentos_{ts}.zip"
+    tmp = tempfile.NamedTemporaryFile(
+        prefix="bulk_", suffix=".zip", delete=False)
+    tmp_path = Path(tmp.name)
+    tmp.close()
+
+    try:
+        # Evitar colisiones de nombres dentro del zip
+        used_arcnames = set()
+
+        def unique_arcname(name: str) -> str:
+            base = Path(name).name or "archivo"
+            if base not in used_arcnames:
+                used_arcnames.add(base)
+                return base
+            stem = Path(base).stem
+            ext = Path(base).suffix
+            i = 2
+            while True:
+                cand = f"{stem} ({i}){ext}"
+                if cand not in used_arcnames:
+                    used_arcnames.add(cand)
+                    return cand
+                i += 1
+
+        with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for d, abs_path, _ in items:
+                arcname = unique_arcname(d.titulo or abs_path.name)
+                zf.write(abs_path, arcname=arcname)
+
+        resp = send_file(
+            tmp_path,
+            as_attachment=True,
+            download_name=zip_name,
+            mimetype="application/zip",
+            max_age=0,
+            conditional=False,
+        )
+        if skipped:
+            resp.headers["X-Skipped"] = ", ".join(skipped)
+        # Limpieza diferida: werkzeug copiará antes de cerrar respuesta
+
+        @resp.call_on_close
+        def _cleanup():
+            try:
+                tmp_path.unlink(missing_ok=True)
+            except Exception:
+                pass
+        return resp
+    except Exception as e:
+        # Fallback y cleanup
+        try:
+            tmp_path.unlink(missing_ok=True)
+        except Exception:
+            pass
+        return {"error": f"No se pudo generar el ZIP: {e}"}, 500

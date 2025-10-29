@@ -28,6 +28,7 @@ import EvidenceModal from "../componentes/EvidenceModal";
 import { listDocuments } from "../services/api";
 import { restoreDocument } from "../services/api";
 import { trashDocument } from "../services/api";
+import { bulkDownload } from "../services/api"; // ✅ NUEVO
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -70,6 +71,15 @@ export default function DashboardPage() {
     acc[d.titulo] = (acc[d.titulo] || 0) + 1;
     return acc;
   }, {});
+
+  // ✅ NUEVO: selección para descarga masiva
+  const [selectedIds, setSelectedIds] = useState([]);
+  const toggleSelected = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+  const clearSelection = () => setSelectedIds([]);
 
   // Descarga un blob CSV usando el promise del servicio
   const downloadCsv = async (promise, filename) => {
@@ -218,6 +228,47 @@ export default function DashboardPage() {
       alert("No se pudo descargar el documento.");
     }
   };
+
+  // ✅ NUEVO: descarga masiva (ZIP)
+  const handleBulkDownload = async () => {
+    if (selectedIds.length === 0) {
+      alert("Selecciona al menos un documento.");
+      return;
+    }
+    if (selectedIds.length > 4) {
+      alert("Máximo 4 documentos por ZIP.");
+      return;
+    }
+    try {
+      const res = await bulkDownload(selectedIds);
+      const blob = new Blob([res.data], { type: "application/zip" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `documentos_${new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace(/[:T]/g, "-")}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      const skipped = res.headers?.["x-skipped"];
+      if (skipped) {
+        toast.info(`Se excluyeron del ZIP: ${skipped}`);
+      }
+      clearSelection();
+    } catch (err) {
+      const msg =
+        err?.response?.data?.error ||
+        (err?.response?.status === 413
+          ? "El tamaño total excede 100 MB."
+          : "No se pudo generar la descarga masiva.");
+      alert(msg);
+    }
+  };
+
   /*------------Eliminar---------------*/
   const handleDelete = async (doc) => {
     const ok = window.confirm(
@@ -656,6 +707,17 @@ export default function DashboardPage() {
             <i className="fas fa-trash-restore" /> Papelera
           </button>
 
+          {/* ✅ NUEVO: botón descarga masiva */}
+          <button
+            onClick={handleBulkDownload}
+            className="chip-toggle"
+            disabled={selectedIds.length === 0}
+            title="Descargar selección como ZIP (máx 4, sin README)"
+          >
+            <i className="fas fa-file-archive" /> Descarga masiva (ZIP)
+            {selectedIds.length > 0 ? ` · ${selectedIds.length}` : ""}
+          </button>
+
           <div className="filter-controls">
             <select
               value={filterType}
@@ -692,7 +754,22 @@ export default function DashboardPage() {
                   doc.id === lastUploadedId ? "highlight" : ""
                 }`}
               >
-                <div className="doc-id">#{doc.id}</div>
+                <div className="doc-id">
+                  {/* ✅ NUEVO: checkbox de selección (deshabilitado si está en papelera) */}
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(doc.id)}
+                    onChange={() => toggleSelected(doc.id)}
+                    disabled={!!doc.deleted_at}
+                    title={
+                      doc.deleted_at
+                        ? "No disponible: documento en papelera"
+                        : "Seleccionar para descarga masiva"
+                    }
+                    style={{ marginRight: 6 }}
+                  />
+                  #{doc.id}
+                </div>
                 <div className="doc-title truncado" title={doc.titulo}>
                   <strong>{doc.titulo}</strong>
                   {nameCounts[doc.titulo] > 1 && (
