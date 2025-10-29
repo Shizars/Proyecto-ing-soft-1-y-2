@@ -1,3 +1,4 @@
+// src/pages/DashboardPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
@@ -29,6 +30,7 @@ import { listDocuments } from "../services/api";
 import { restoreDocument } from "../services/api";
 import { trashDocument } from "../services/api";
 import { bulkDownload } from "../services/api"; // ✅ NUEVO
+import RemindersWidget from "../componentes/RemindersWidget"; // ✅ ya lo tenías importado
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -101,23 +103,12 @@ export default function DashboardPage() {
   };
   useEffect(() => {
     const handleClickOutside = (e) => {
-      // si no hay menú abierto, no hacemos nada
       if (openArchiveId == null) return;
-
-      // Busca el dropdown más cercano al target del click
       const dd = e.target.closest(".archive-dropdown");
-
-      // Si el click fue dentro de un dropdown
       if (dd) {
-        // ¿Corresponde al doc actualmente abierto?
         const clickedId = dd.getAttribute("data-docid");
-        if (String(clickedId) === String(openArchiveId)) {
-          // Es el mismo dropdown abierto → NO cerrar
-          return;
-        }
+        if (String(clickedId) === String(openArchiveId)) return;
       }
-
-      // Si no es el mismo dropdown, o el click fue fuera → cerrar
       setOpenArchiveId(null);
     };
 
@@ -127,7 +118,6 @@ export default function DashboardPage() {
 
   // Modal de auditoría controlado por la URL
   const auditModalOpen = pathname.startsWith("/dashboard/auditorias/nueva");
-  // Programas (puedes traerlos del backend o definirlos aquí)
   const PROGRAMAS = ["DAM", "PEE", "PIE", "PPF", "PRM", "PSA", "PLA", "PLE"];
 
   // Bloquear scroll del fondo cuando el modal está abierto
@@ -138,7 +128,6 @@ export default function DashboardPage() {
     };
   }, [auditModalOpen]);
 
-  // Cerrar modal y volver a /dashboard
   const closeAudit = () => navigate("/dashboard");
 
   // Cerrar con tecla ESC
@@ -178,17 +167,15 @@ export default function DashboardPage() {
   }, [darkMode]);
 
   /* ---------- cargar docs ---------- */
-  /* ---------- cargar docs ---------- */
   const loadDocuments = async () => {
     try {
-      const res = await listDocuments(showDeleted); // usa el servicio que recibe el flag
+      const res = await listDocuments(showDeleted);
       setDocuments(res.data);
     } catch (err) {
       console.error("Load documents error:", err);
     }
   };
 
-  // vuelve a cargar docs cada vez que cambie showDeleted
   useEffect(() => {
     loadDocuments();
   }, [showDeleted]);
@@ -229,7 +216,7 @@ export default function DashboardPage() {
     }
   };
 
-  // ✅ NUEVO: descarga masiva (ZIP)
+  // ✅ Descarga masiva (ZIP)
   const handleBulkDownload = async () => {
     if (selectedIds.length === 0) {
       alert("Selecciona al menos un documento.");
@@ -255,9 +242,7 @@ export default function DashboardPage() {
       window.URL.revokeObjectURL(url);
 
       const skipped = res.headers?.["x-skipped"];
-      if (skipped) {
-        toast.info(`Se excluyeron del ZIP: ${skipped}`);
-      }
+      if (skipped) toast.info(`Se excluyeron del ZIP: ${skipped}`);
       clearSelection();
     } catch (err) {
       const msg =
@@ -338,17 +323,10 @@ export default function DashboardPage() {
     };
 
     try {
-      // intento normal (sin duplicados)
       const response = await api.post("/documents/upload", buildPayload(false));
-
-      // ⬅️ usar el id correcto devuelto por el backend
       setLastUploadedId(response.data.document.id);
-
       await loadDocuments();
-
-      // Quita el highlight después de 3 segundos
       setTimeout(() => setLastUploadedId(null), 3000);
-
       closeModal();
       setSuccess("El documento se subió de manera exitosa.");
       setTimeout(() => setSuccess(""), 5000);
@@ -357,7 +335,6 @@ export default function DashboardPage() {
       const data = err?.response?.data;
 
       if (status === 409 && data?.error === "DUPLICATE") {
-        // 1) Pregunta simple: ¿subir igual?
         const subirIgual = window.confirm(
           `${data.message}\n\n¿Deseas subirlo de todas formas (quedarán 2 archivos con el mismo nombre)?`
         );
@@ -385,7 +362,6 @@ export default function DashboardPage() {
           }
         }
 
-        // 2) Si no quiere subir igual, ofrecer borrar el existente y subir
         const borrarYSubir = window.confirm(
           "¿Deseas eliminar el archivo existente y subir este nuevo en su lugar?"
         );
@@ -412,7 +388,6 @@ export default function DashboardPage() {
           }
         }
 
-        // 3) Canceló todo
         setError("Operación cancelada por el usuario.");
       } else {
         console.error("Upload error:", err?.response || err);
@@ -426,7 +401,7 @@ export default function DashboardPage() {
   const handleToggleFavorite = async (doc) => {
     try {
       await toggleFavorite(doc.id);
-      await loadDocuments(); // refresca la lista con el nuevo estado
+      await loadDocuments();
     } catch (err) {
       console.error("Favorite toggle error:", err?.response || err);
       alert("No se pudo cambiar favorito.");
@@ -463,7 +438,7 @@ export default function DashboardPage() {
       }
       setPreviewUrl(url);
       setSelectedDoc(doc);
-      setPreviewOpen(true); // 👈 faltaba
+      setPreviewOpen(true);
     } catch (err) {
       console.error("Preview error:", err.response || err);
       alert("No se pudo cargar la vista previa.");
@@ -492,7 +467,6 @@ export default function DashboardPage() {
     (a, b) => new Date(b.fecha_subida) - new Date(a.fecha_subida)
   );
   const docsToShow = sortedDocuments
-    // filtros existentes
     .filter(
       (d) =>
         (filterCats.length === 0 || filterCats.includes(d.categoria)) &&
@@ -502,10 +476,8 @@ export default function DashboardPage() {
         (showArchived ? d.archived === true : d.archived !== true) &&
         (!selectedFolder || d.folder_code === selectedFolder)
     )
-    // filtro segmentado (nombre / fecha / categoría)
     .filter((d) => {
       if (!filterValue) return true;
-
       if (filterType === "nombre") {
         return d.titulo.toLowerCase().includes(filterValue.toLowerCase());
       }
@@ -643,7 +615,7 @@ export default function DashboardPage() {
           className="widgets-row"
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr", // 50/50 fijo
+            gridTemplateColumns: "1fr 1fr",
             gap: "16px",
             alignItems: "stretch",
             width: "100%",
@@ -667,6 +639,11 @@ export default function DashboardPage() {
           </div>
           <div style={{ maxWidth: "none" }}>
             <ExistenciaWidget refreshMs={3000} />
+          </div>
+
+          {/* ✅ NUEVO: Reminders widget ocupa toda la fila, sin tocar lo demás */}
+          <div style={{ gridColumn: "1 / -1" }}>
+            <RemindersWidget />
           </div>
         </div>
 
@@ -755,7 +732,7 @@ export default function DashboardPage() {
                 }`}
               >
                 <div className="doc-id">
-                  {/* ✅ NUEVO: checkbox de selección (deshabilitado si está en papelera) */}
+                  {/* ✅ checkbox de selección (deshabilitado si está en papelera) */}
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(doc.id)}
@@ -893,7 +870,6 @@ export default function DashboardPage() {
 
                   {/* === Papelera / Restaurar === */}
                   {!doc.deleted_at ? (
-                    // Enviar a papelera (soft delete)
                     <button
                       onClick={async () => {
                         if (
@@ -917,7 +893,6 @@ export default function DashboardPage() {
                     </button>
                   ) : (
                     <>
-                      {/* Restaurar desde papelera */}
                       <button
                         onClick={async () => {
                           try {
@@ -932,8 +907,6 @@ export default function DashboardPage() {
                       >
                         <i className="fas fa-undo" />
                       </button>
-
-                      {/* Eliminar DEFINITIVO (solo visible en papelera) */}
                       <button
                         onClick={async () => {
                           if (
@@ -983,7 +956,7 @@ export default function DashboardPage() {
                     </button>
                   )}
 
-                  {/* Descargar / Ver / Compartir (no aplica en papelera) */}
+                  {/* Descargar / Ver / Compartir */}
                   {!doc.deleted_at && (
                     <>
                       <button
@@ -1018,7 +991,7 @@ export default function DashboardPage() {
       <PdfPreviewModal
         isOpen={previewOpen}
         url={previewUrl}
-        docId={selectedDoc?.id} // ahora usamos el estado
+        docId={selectedDoc?.id}
         onClose={() => setPreviewOpen(false)}
       />
 

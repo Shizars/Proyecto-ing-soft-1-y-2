@@ -95,6 +95,13 @@ export const listDocuments = (includeDeleted = false) =>
 export const bulkDownload = (ids) =>
   api.post(`/documents/bulk-download`, { ids }, { responseType: "blob" });
 
+// --- Reminders ---
+export const getReminders = () => api.get("/reminders/");
+export const addReminder = (payload) => api.post("/reminders/", payload);
+export const deleteReminderApi = (id) => api.delete(`/reminders/${id}`);
+export const markReminderDone = (id, done = true) =>
+  api.patch(`/reminders/${id}`, { done });
+
 
 export default api;
 
