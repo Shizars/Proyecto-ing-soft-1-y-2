@@ -12,7 +12,7 @@ import CategoryPieChart from "../componentes/CategoryPieChart";
 import SessionTimer from "../componentes/SessionTimer";
 import logoCdn from "../img/cdn_docs.png";
 import TagSelector from "../componentes/TagSelector";
-
+import AccessLogsWidget from "../componentes/AccessLogsWidget";
 import AuditFormV2 from "../componentes/AuditFormV2";
 import ProgramResponsesWidget from "../componentes/ProgramResponsesWidget";
 import ProgramRankingWidget from "../componentes/ProgamRankingWidget";
@@ -645,6 +645,9 @@ export default function DashboardPage() {
           <div style={{ gridColumn: "1 / -1" }}>
             <RemindersWidget />
           </div>
+        </div>
+        <div className="widgets-row" style={{ marginTop: 16 }}>
+          <AccessLogsWidget />
         </div>
 
         {/* ---- sección documentos ---- */}

@@ -102,6 +102,11 @@ export const deleteReminderApi = (id) => api.delete(`/reminders/${id}`);
 export const markReminderDone = (id, done = true) =>
   api.patch(`/reminders/${id}`, { done });
 
+// --- Access Logs ---
+export const getAccessLogs = (page = 1, per_page = 25) =>
+  api.get(`/access-logs/?page=${page}&per_page=${per_page}`);
+
+
 
 export default api;
 
