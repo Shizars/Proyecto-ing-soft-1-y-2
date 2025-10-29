@@ -30,8 +30,10 @@ import EvidenceModal from "../componentes/EvidenceModal";
 import { listDocuments } from "../services/api";
 import { restoreDocument } from "../services/api";
 import { trashDocument } from "../services/api";
-import { bulkDownload } from "../services/api"; // ✅ NUEVO
-import RemindersWidget from "../componentes/RemindersWidget"; // ✅ ya lo tenías importado
+import { bulkDownload } from "../services/api";
+import RemindersWidget from "../componentes/RemindersWidget";
+
+import AccountSettingsModal from "../componentes/AccountSettingsModal";
 
 export default function DashboardPage() {
   /* ---------- estados ---------- */
@@ -51,6 +53,8 @@ export default function DashboardPage() {
 
   const [filterType, setFilterType] = useState("nombre");
   const [filterValue, setFilterValue] = useState("");
+  // estados:
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const [evidOpen, setEvidOpen] = useState(false);
   const [evidDoc, setEvidDoc] = useState(null);
@@ -69,7 +73,7 @@ export default function DashboardPage() {
   const { pathname } = useLocation();
   const [onlyFavs, setOnlyFavs] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
-  // después de cargar documents
+  // después de cargar documentsc
   const nameCounts = documents.reduce((acc, d) => {
     acc[d.titulo] = (acc[d.titulo] || 0) + 1;
     return acc;
@@ -559,6 +563,10 @@ export default function DashboardPage() {
             <i className={darkMode ? "fas fa-sun" : "fas fa-moon"} />
             <span>{darkMode ? "Modo claro" : "Modo oscuro"}</span>
           </button>
+          <button onClick={() => setSettingsOpen(true)}>
+            <i className="fas fa-user-cog" />
+            <span>Mi cuenta</span>
+          </button>
 
           <button onClick={logout}>
             <i className="fas fa-sign-out-alt" />
@@ -1011,6 +1019,11 @@ export default function DashboardPage() {
         selected={filterCats}
         onSave={setFilterCats}
         onClose={() => setCatOpen(false)}
+      />
+      <AccountSettingsModal
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        currentUser={user}
       />
 
       {/* Modal de Auditoría */}

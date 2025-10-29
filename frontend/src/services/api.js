@@ -105,7 +105,12 @@ export const markReminderDone = (id, done = true) =>
 // --- Access Logs ---
 export const getAccessLogs = (page = 1, per_page = 25) =>
   api.get(`/access-logs/?page=${page}&per_page=${per_page}`);
+// PUT /api/users/me  -> actualiza nombre y correo del usuario logueado
 
+
+// ...resto de imports y configuración axios
+export const updateProfile = (payload) =>
+  api.put("/users/me", payload); // coincide con /api/users/me del backend
 
 
 export default api;
