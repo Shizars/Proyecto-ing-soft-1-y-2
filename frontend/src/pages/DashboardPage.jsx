@@ -7,6 +7,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PdfPreviewModal from "../componentes/PdfPreviewModal";
 import CategoryFilterModal from "../componentes/CategoryFilterModal";
+import MonthlyUploadsKPI from "../componentes/MonthlyUploadsKPI";
+
 import "./DashboardPage.css";
 import AccessWindowGuard from "../componentes/AccessWindowGuard";
 import CategoryPieChart from "../componentes/CategoryPieChart";
@@ -583,6 +585,7 @@ export default function DashboardPage() {
           warnMinutes={5}
           onTimeout={logout}
         />
+
         {/* ---- bloque “Overview” ---- */}
         <div className="overview-card">
           <header className="overview-head">
@@ -622,6 +625,9 @@ export default function DashboardPage() {
               <span className="folder-title">Nueva carpeta</span>
             </div>
           </div>
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <MonthlyUploadsKPI documents={documents} months={6} />
         </div>
 
         <CategoryPieChart documents={documents} />
