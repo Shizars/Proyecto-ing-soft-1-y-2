@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import PdfPreviewModal from "../componentes/PdfPreviewModal";
 import CategoryFilterModal from "../componentes/CategoryFilterModal";
 import "./DashboardPage.css";
+import AccessWindowGuard from "../componentes/AccessWindowGuard";
 import CategoryPieChart from "../componentes/CategoryPieChart";
 import SessionTimer from "../componentes/SessionTimer";
 import logoCdn from "../img/cdn_docs.png";
@@ -568,6 +569,12 @@ export default function DashboardPage() {
 
       {/* ===== MAIN ===== */}
       <main className="content">
+        <AccessWindowGuard
+          start="08:00"
+          end=" 5:00"
+          warnMinutes={5}
+          onTimeout={logout}
+        />
         {/* ---- bloque “Overview” ---- */}
         <div className="overview-card">
           <header className="overview-head">
