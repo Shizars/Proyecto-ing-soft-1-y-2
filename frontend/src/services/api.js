@@ -1,9 +1,12 @@
 import axios from "axios";
 
 //api.js
-const api = axios.create({
-  baseURL: "http://127.0.0.1:5000/api",
-});
+const baseURL =
+  window.location.hostname === "localhost"
+    ? "http://127.0.0.1:5000/api"
+    : "https://adventure-strictly-over-feat.trycloudflare.com/api"; // tu URL del túnel
+
+const api = axios.create({ baseURL });
 
 /* -------- request: añade token -------- */
 api.interceptors.request.use((config) => {
