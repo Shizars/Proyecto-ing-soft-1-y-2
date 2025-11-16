@@ -1269,6 +1269,134 @@
   box-shadow: 0 10px 24px rgba(0,0,0,.35);
 }
 
+/* ===== Carpetas dinámicas ===== */
+
+.folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.folder-card {
+  background: var(--card-bg, #ffffff);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease,
+    border-color 0.1s ease;
+  border: 1px solid transparent;
+}
+
+.folder-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.folder-card.active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb33;
+}
+
+.folder-card.gallery {
+  border-style: dashed;
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.folder-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.folder-id {
+  font-size: 18px;
+}
+
+.folder-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.folder-count {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.folder-help {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.folder-delete-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 0;
+}
+
+.folder-delete-btn i {
+  font-size: 13px;
+}
+
+.folder-assign-btn {
+  margin-top: 6px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+
+/* ===== Menú de archivo a carpeta ===== */
+
+.archive-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.archive-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  padding: 4px;
+  z-index: 20;
+  min-width: 180px;
+}
+
+.archive-menu button {
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.archive-menu button:hover {
+  background: #f3f4f6;
+}
+
+.archive-menu-empty {
+  font-size: 12px;
+  color: #6b7280;
+  padding: 4px 6px;
+}
+
 
 
 

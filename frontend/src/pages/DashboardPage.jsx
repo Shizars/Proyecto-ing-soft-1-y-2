@@ -48,7 +48,7 @@ export default function DashboardPage() {
 
   const [lastUploadedId, setLastUploadedId] = useState(null);
   const [satisfOpen, setSatisfOpen] = useState(false);
-  const [selectedFolder, setSelectedFolder] = useState(null); // ej: "F-SGC-033-B" | "F-SGC-036" | null
+  const [selectedFolder, setSelectedFolder] = useState(null); // nombre de carpeta o null
   const [showArchived, setShowArchived] = useState(false); // ver archivados o activos
   const [openArchiveId, setOpenArchiveId] = useState(null);
   const [showDeleted, setShowDeleted] = useState(false);
@@ -75,13 +75,19 @@ export default function DashboardPage() {
   const { pathname } = useLocation();
   const [onlyFavs, setOnlyFavs] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
-  // después de cargar documentsc
+
+  // después de cargar documents
   const nameCounts = documents.reduce((acc, d) => {
     acc[d.titulo] = (acc[d.titulo] || 0) + 1;
     return acc;
   }, {});
 
-  // ✅ NUEVO: selección para descarga masiva
+  // 🔹 Carpetas dinámicas: nombres únicos a partir de folder_code
+  const folders = Array.from(
+    new Set(documents.filter((d) => d.folder_code).map((d) => d.folder_code))
+  );
+
+  // ✅ Selección para descarga masiva y mover a carpetas
   const [selectedIds, setSelectedIds] = useState([]);
   const toggleSelected = (id) => {
     setSelectedIds((prev) =>
@@ -89,6 +95,90 @@ export default function DashboardPage() {
     );
   };
   const clearSelection = () => setSelectedIds([]);
+
+  // 🔹 Mover selección actual a una carpeta (existente o nueva)
+  const moveSelectionToFolder = async (folderName) => {
+    const name = (folderName || "").trim();
+    if (!name) return;
+
+    if (selectedIds.length === 0) {
+      alert("Primero selecciona uno o más documentos.");
+      return;
+    }
+
+    const docsMap = new Map(documents.map((d) => [d.id, d]));
+    const validDocs = selectedIds
+      .map((id) => docsMap.get(id))
+      .filter((d) => d && !d.deleted_at);
+
+    if (validDocs.length === 0) {
+      alert(
+        "Los documentos seleccionados no son válidos o están en la papelera."
+      );
+      return;
+    }
+
+    try {
+      await Promise.all(validDocs.map((d) => archiveDocument(d.id, name)));
+      await loadDocuments();
+      setSelectedFolder(name);
+      toast.success(`Documentos movidos a "${name}".`);
+    } catch (err) {
+      console.error("Mover a carpeta error:", err?.response || err);
+      alert("No se pudieron mover los documentos.");
+    }
+  };
+
+  // Crear carpeta nueva usando la selección actual
+  const handleCreateFolderFromSelection = async () => {
+    if (selectedIds.length === 0) {
+      alert("Selecciona al menos un documento antes de crear una carpeta.");
+      return;
+    }
+    const name = prompt("Nombre de la nueva carpeta:");
+    if (!name) return;
+    await moveSelectionToFolder(name);
+  };
+
+  // Eliminar carpeta: quita folder_code de todos los documentos que la usan
+  const handleDeleteFolder = async (folderName) => {
+    const ok = window.confirm(
+      `¿Eliminar la carpeta "${folderName}"?\n\nLos documentos seguirán existiendo, solo se quitarán de esta carpeta.`
+    );
+    if (!ok) return;
+
+    const docsInFolder = documents.filter(
+      (d) => d.folder_code === folderName && !d.deleted_at
+    );
+
+    try {
+      // 1) Actualizar en el backend (quitar carpeta / archived)
+      await Promise.all(docsInFolder.map((d) => unarchiveDocument(d.id)));
+
+      // 2) Actualizar estado local inmediatamente (como si recargaras)
+      setDocuments((prev) =>
+        prev.map((d) =>
+          d.folder_code === folderName
+            ? { ...d, archived: false, folder_code: null }
+            : d
+        )
+      );
+
+      // 3) Limpiar filtros que pueden dejar la lista vacía
+      setSelectedFolder((prev) => (prev === folderName ? null : prev));
+      setShowArchived(false); // por si estabas viendo "Archivados"
+      setShowDeleted(false); // opcional: vuelves a vista normal
+      clearSelection(); // quita selección de checkboxes
+
+      // 4) Refrescar contra el backend por seguridad (no es obligatorio, pero ayuda)
+      await loadDocuments();
+
+      toast.info(`Carpeta "${folderName}" eliminada.`);
+    } catch (err) {
+      console.error("Eliminar carpeta error:", err?.response || err);
+      alert("No se pudo eliminar la carpeta.");
+    }
+  };
 
   // Descarga un blob CSV usando el promise del servicio
   const downloadCsv = async (promise, filename) => {
@@ -108,6 +198,7 @@ export default function DashboardPage() {
       alert("No se pudo exportar el archivo.");
     }
   };
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (openArchiveId == null) return;
@@ -414,10 +505,12 @@ export default function DashboardPage() {
       alert("No se pudo cambiar favorito.");
     }
   };
+
   const handleArchive = async (doc, folder_code) => {
     try {
       await archiveDocument(doc.id, folder_code);
       await loadDocuments();
+      setSelectedFolder(folder_code);
     } catch (err) {
       console.error("Archive error:", err?.response || err);
       alert(err?.response?.data?.error || "No se pudo archivar el documento.");
@@ -473,16 +566,27 @@ export default function DashboardPage() {
   const sortedDocuments = [...documents].sort(
     (a, b) => new Date(b.fecha_subida) - new Date(a.fecha_subida)
   );
+
   const docsToShow = sortedDocuments
-    .filter(
-      (d) =>
-        (filterCats.length === 0 || filterCats.includes(d.categoria)) &&
-        (searchTerm.trim() === "" ||
-          d.titulo.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (!onlyFavs || d.is_favorite === true) &&
-        (showArchived ? d.archived === true : d.archived !== true) &&
-        (!selectedFolder || d.folder_code === selectedFolder)
-    )
+    .filter((d) => {
+      const matchesCategory =
+        filterCats.length === 0 || filterCats.includes(d.categoria);
+      const matchesSearch =
+        searchTerm.trim() === "" ||
+        d.titulo.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesFav = !onlyFavs || d.is_favorite === true;
+
+      // Si hay carpeta seleccionada, ignoramos el chip "Archivados/Activos"
+      const matchesArchiveOrFolder = selectedFolder
+        ? d.folder_code === selectedFolder
+        : showArchived
+        ? d.archived === true
+        : d.archived !== true;
+
+      return (
+        matchesCategory && matchesSearch && matchesFav && matchesArchiveOrFolder
+      );
+    })
     .filter((d) => {
       if (!filterValue) return true;
       if (filterType === "nombre") {
@@ -580,8 +684,8 @@ export default function DashboardPage() {
       {/* ===== MAIN ===== */}
       <main className="content">
         <AccessWindowGuard
-          start="08:00"
-          end=" 5:00"
+          start="00:00"
+          end="23:59"
           warnMinutes={5}
           onTimeout={logout}
         />
@@ -592,40 +696,77 @@ export default function DashboardPage() {
             <div>
               <h2>Tus carpetas</h2>
               <p>
-                Crea carpetas personalizadas y accede rápidamente a los
-                documentos de la fundación.
+                Crea carpetas personalizadas y organiza los documentos de la
+                fundación. Usa la selección de documentos para moverlos entre
+                carpetas.
               </p>
             </div>
           </header>
 
           {/* mini-carpetas */}
           <div className="folder-grid">
-            {[
-              { code: "F-SGC-033-B", label: "F-SGC-033-B", color: "green" },
-              { code: "F-SGC-036", label: "F-SGC-036", color: "purple" },
-            ].map((f) => (
-              <div
-                key={f.code}
-                className={`folder-card ${f.color} ${
-                  selectedFolder === f.code ? "active" : ""
-                }`}
-                onClick={() =>
-                  setSelectedFolder(selectedFolder === f.code ? null : f.code)
-                }
-                title="Filtrar por carpeta"
-                role="button"
-              >
-                <span className="folder-id">•</span>
-                <span className="folder-title">{f.label}</span>
-              </div>
-            ))}
+            {folders.map((name) => {
+              const count = documents.filter(
+                (d) => d.folder_code === name && !d.deleted_at
+              ).length;
+              return (
+                <div
+                  key={name}
+                  className={`folder-card ${
+                    selectedFolder === name ? "active" : ""
+                  }`}
+                  onClick={() =>
+                    setSelectedFolder(selectedFolder === name ? null : name)
+                  }
+                  title="Filtrar por carpeta"
+                  role="button"
+                >
+                  <div className="folder-card-header">
+                    <span className="folder-id">•</span>
+                    <button
+                      className="folder-delete-btn"
+                      title="Eliminar carpeta"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteFolder(name);
+                      }}
+                    >
+                      <i className="fas fa-trash-alt" />
+                    </button>
+                  </div>
+                  <span className="folder-title">{name}</span>
+                  <span className="folder-count">
+                    {count} documento{count !== 1 ? "s" : ""}
+                  </span>
+                  {selectedIds.length > 0 && (
+                    <button
+                      className="folder-assign-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveSelectionToFolder(name);
+                      }}
+                    >
+                      Mover selección aquí
+                    </button>
+                  )}
+                </div>
+              );
+            })}
 
-            <div className="folder-card gallery" title="(solo demostrativo)">
+            <div
+              className="folder-card gallery"
+              title="Crear carpeta y mover selección"
+              onClick={handleCreateFolderFromSelection}
+            >
               <span className="folder-id">+</span>
               <span className="folder-title">Nueva carpeta</span>
+              <span className="folder-help">
+                Usa la selección actual de documentos
+              </span>
             </div>
           </div>
         </div>
+
         <div style={{ marginBottom: 16 }}>
           <MonthlyUploadsKPI documents={documents} months={6} />
         </div>
@@ -765,7 +906,7 @@ export default function DashboardPage() {
                     title={
                       doc.deleted_at
                         ? "No disponible: documento en papelera"
-                        : "Seleccionar para descarga masiva"
+                        : "Seleccionar para acciones masivas"
                     }
                     style={{ marginRight: 6 }}
                   />
@@ -868,7 +1009,7 @@ export default function DashboardPage() {
                               openArchiveId === doc.id ? null : doc.id
                             );
                           }}
-                          title="Archivar en carpeta"
+                          title="Mover a carpeta"
                         >
                           <i className="fas fa-box-archive" />
                         </button>
@@ -877,15 +1018,29 @@ export default function DashboardPage() {
                             className="archive-menu"
                             onMouseDown={(e) => e.stopPropagation()}
                           >
+                            {folders.length === 0 && (
+                              <div className="archive-menu-empty">
+                                No tienes carpetas aún.
+                              </div>
+                            )}
+                            {folders.map((name) => (
+                              <button
+                                key={name}
+                                onClick={() => handleArchive(doc, name)}
+                              >
+                                {name}
+                              </button>
+                            ))}
                             <button
-                              onClick={() => handleArchive(doc, "F-SGC-033-B")}
+                              onClick={() => {
+                                const name = prompt(
+                                  "Nombre de la nueva carpeta:"
+                                );
+                                if (!name) return;
+                                handleArchive(doc, name.trim());
+                              }}
                             >
-                              F-SGC-033-B
-                            </button>
-                            <button
-                              onClick={() => handleArchive(doc, "F-SGC-036")}
-                            >
-                              F-SGC-036
+                              + Nueva carpeta
                             </button>
                           </div>
                         )}

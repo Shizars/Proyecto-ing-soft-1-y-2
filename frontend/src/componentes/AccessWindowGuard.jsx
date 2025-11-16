@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
  */
 export default function AccessWindowGuard({
   start = "08:00", // HH:mm (24h)
-  end = "18:00", // HH:mm (24h)
+  end = "22:00", // HH:mm (24h)
   warnMinutes = 5, // minutos antes para avisar
   onTimeout, // callback cuando cierra (e.g., logout)
 }) {

@@ -50,7 +50,7 @@ EVIDENCE_DIR: Path = (UPLOAD_DIR / "evidences")
 EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Carpetas fijas permitidas para archivar
-ALLOWED_FOLDERS = {"F-SGC-033-B", "F-SGC-036"}
+# ALLOWED_FOLDERS = {"F-SGC-033-B", "F-SGC-036"}
 
 
 # ------------------ Helpers ------------------
@@ -335,6 +335,11 @@ def delete_comment(comment_id: int):
 @docs_bp.patch("/<int:doc_id>/archive")
 @jwt_required()
 def archive_document(doc_id: int):
+    """
+    Asigna el documento a una 'carpeta' lógica.
+    Ahora el nombre de la carpeta es dinámico: cualquier string no vacío.
+    El frontend se encarga de crear/eliminar carpetas a partir de los documentos.
+    """
     user_id = get_jwt_identity()
     doc = _get_owned_doc_or_404(doc_id, user_id)
     if not doc or doc.deleted_at is not None:
@@ -342,13 +347,17 @@ def archive_document(doc_id: int):
 
     data = request.get_json() or {}
     folder_code = (data.get("folder_code") or "").strip()
-    if folder_code not in ALLOWED_FOLDERS:
-        return {"error": "Carpeta inválida"}, 400
+    if not folder_code:
+        return {"error": "Se requiere el nombre de la carpeta"}, 400
 
     doc.archived = True
     doc.folder_code = folder_code
     db.session.commit()
-    return {"id": doc.id, "archived": doc.archived, "folder_code": doc.folder_code}, 200
+    return {
+        "id": doc.id,
+        "archived": doc.archived,
+        "folder_code": doc.folder_code,
+    }, 200
 
 
 @docs_bp.patch("/<int:doc_id>/unarchive")
