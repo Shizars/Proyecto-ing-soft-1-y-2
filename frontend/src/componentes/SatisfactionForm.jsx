@@ -25,12 +25,22 @@ const RESULTADOS = [
 const Schema = Yup.object({
   respondida_en: Yup.string().required("Requerido"),
   programa: Yup.string().required("Requerido"),
-  p1_trato: Yup.string().required(),
-  p2_info: Yup.string().required(),
-  p3_tiempo: Yup.string().required(),
-  p4_participacion: Yup.string().required(),
-  p5_resultados: Yup.string().required(),
-  p6_infraestructura: Yup.string().required(),
+  p1_trato: Yup.string().required("Requerido"),
+  p2_info: Yup.string().required("Requerido"),
+  p3_tiempo: Yup.string().required("Requerido"),
+  p4_participacion: Yup.string().required("Requerido"),
+  p5_resultados: Yup.string().required("Requerido"),
+  p6_infraestructura: Yup.string().required("Requerido"),
+
+  // mínimo 1 resultado marcado
+  resultados_percibidos: Yup.array()
+    .of(Yup.string())
+    .min(1, "Debes marcar al menos una opción."),
+
+  // firma obligatoria
+  firma_nna: Yup.string()
+    .trim()
+    .required("La firma del niño(a) es obligatoria"),
 });
 
 export default function SatisfactionForm({ onSaved, onClose, programas = [] }) {
@@ -55,15 +65,42 @@ export default function SatisfactionForm({ onSaved, onClose, programas = [] }) {
     <Formik
       initialValues={initialValues}
       validationSchema={Schema}
-      onSubmit={async (values, { resetForm }) => {
-        await createSatisfaction(values);
-        resetForm();
-        onSaved && onSaved();
+      onSubmit={async (values, { resetForm, setSubmitting, setStatus }) => {
+        setStatus(undefined);
+        try {
+          await createSatisfaction(values);
+          resetForm();
+          onSaved && onSaved();
+        } catch (err) {
+          console.error("save satisfaction error:", err?.response || err);
+          const msg =
+            err?.response?.data?.error ||
+            err?.response?.data?.detail ||
+            "No se pudo guardar la encuesta. Revisa que todos los campos obligatorios estén completos.";
+
+          setStatus({ apiError: msg });
+        } finally {
+          setSubmitting(false);
+        }
       }}
     >
-      {({ values, setFieldValue, errors, touched }) => (
+      {({
+        values,
+        setFieldValue,
+        errors,
+        touched,
+        status,        // 👈 NUEVO
+        submitCount,   // 👈 NUEVO
+      }) => (
         <Form className="satisf-form">
           <h2>Encuesta de Satisfacción (NNA)</h2>
+
+          {/* error general de API */}
+          {status?.apiError && (
+            <div className="error" style={{ marginBottom: 8 }}>
+              {status.apiError}
+            </div>
+          )}
 
           <div className="grid-2">
             <div>
@@ -178,10 +215,18 @@ export default function SatisfactionForm({ onSaved, onClose, programas = [] }) {
               );
             })}
           </div>
-          <label></label>
+
+          {/* error para resultados_percibidos */}
+          {(touched.resultados_percibidos || submitCount > 0) &&
+            errors.resultados_percibidos && (
+              <div className="error">{errors.resultados_percibidos}</div>
+            )}
 
           <label>Firma del niño(a)</label>
           <Field name="firma_nna" placeholder="Nombre / Iniciales" />
+          {(touched.firma_nna || submitCount > 0) && errors.firma_nna && (
+            <div className="error">{errors.firma_nna}</div>
+          )}
 
           <div className="actions">
             <button type="submit">Guardar</button>

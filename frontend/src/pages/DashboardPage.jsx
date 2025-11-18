@@ -583,15 +583,73 @@ export default function DashboardPage() {
   };
 
 
+
+  async function copyToClipboard(text) {
+    // 1) Intentar con la API moderna (solo HTTPS / localhost)
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (e) {
+        console.warn("Clipboard API falló, uso fallback:", e);
+      }
+    }
+
+    // 2) Fallback clásico con textarea + execCommand
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return ok;
+    } catch (e) {
+      console.warn("Fallback de copia también falló:", e);
+      return false;
+    }
+  }
+
+
   /* ---------- compartir ---------- */
   const handleShare = async (doc) => {
     try {
       const { data } = await api.post(`/documents/${doc.id}/share`);
-      const url = data.url;
+
+      let url = data.url;
+      if (!url) {
+        toast.error("No se pudo generar el enlace");
+        return;
+      }
+
+      // Normalizar localhost -> IP real
       try {
-        await navigator.clipboard.writeText(url);
+        const u = new URL(url, window.location.origin);
+
+        if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
+          u.hostname = window.location.hostname;
+          if (!u.port) {
+            u.port = "5000";
+          }
+          url = u.toString();
+        }
+      } catch (e) {
+        if (typeof url === "string" && url.startsWith("/")) {
+          const { protocol, hostname } = window.location;
+          url = `${protocol}//${hostname}:5000${url}`;
+        }
+      }
+
+      // 👉 Intentar copiar (API moderna + fallback)
+      const copied = await copyToClipboard(url);
+
+      if (copied) {
         toast.success("Enlace copiado al portapapeles");
-      } catch {
+      } else {
+        // Si tampoco se pudo copiar, al menos mostramos el link
         toast.info(`Enlace listo para compartir:\n${url}`);
       }
     } catch (err) {
@@ -599,6 +657,7 @@ export default function DashboardPage() {
       toast.error("No se pudo generar el enlace");
     }
   };
+
 
   /* ---------- filtros ---------- */
   const sortedDocuments = [...documents].sort(

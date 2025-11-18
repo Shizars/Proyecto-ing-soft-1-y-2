@@ -276,8 +276,10 @@ def list_favorites():
 @docs_bp.get("/<int:doc_id>/comments")
 @jwt_required()
 def list_comments(doc_id: int):
-    user_id = get_jwt_identity()
-    doc = _get_owned_doc_or_404(doc_id, user_id)
+    raw_id = get_jwt_identity()
+    user_id = str(raw_id)  # normalizamos a string
+
+    doc = _get_owned_doc_or_404(doc_id, raw_id)  # aquí puede seguir usando el tipo original
     if not doc or doc.deleted_at is not None:
         return {"error": "Documento no disponible"}, 404
 
@@ -293,8 +295,10 @@ def list_comments(doc_id: int):
 @docs_bp.post("/<int:doc_id>/comments")
 @jwt_required()
 def add_comment(doc_id: int):
-    user_id = get_jwt_identity()
-    doc = _get_owned_doc_or_404(doc_id, user_id)
+    raw_id = get_jwt_identity()
+    user_id = str(raw_id)
+
+    doc = _get_owned_doc_or_404(doc_id, raw_id)
     if not doc or doc.deleted_at is not None:
         return {"error": "Documento no disponible"}, 404
 
@@ -302,6 +306,7 @@ def add_comment(doc_id: int):
     if not body:
         return {"error": "El comentario no puede estar vacío"}, 400
 
+    # guardamos el mismo valor que usamos para comparar luego
     c = DocumentComment(document_id=doc_id, owner_id=user_id, body=body)
     db.session.add(c)
     db.session.commit()
@@ -311,7 +316,8 @@ def add_comment(doc_id: int):
 @docs_bp.delete("/comments/<int:comment_id>")
 @jwt_required()
 def delete_comment(comment_id: int):
-    user_id = get_jwt_identity()
+    raw_id = get_jwt_identity()
+    user_id = str(raw_id)
 
     c = DocumentComment.query.get(comment_id)
     if not c:
@@ -320,10 +326,28 @@ def delete_comment(comment_id: int):
     doc = Document.query.get(c.document_id)
     if not doc:
         return {"error": "Documento no encontrado"}, 404
-    if c.owner_id != user_id and doc.owner_id != user_id:
-        return {"error": "Sin permisos para eliminar"}, 403
     if doc.deleted_at is not None:
         return {"error": "Documento no disponible"}, 404
+
+    # normalizamos también los owner a string
+    comment_owner = None if c.owner_id is None else str(c.owner_id)
+    doc_owner = None if doc.owner_id is None else str(doc.owner_id)
+
+    # DEBUG temporal (si quieres ver valores reales en consola):
+    print(
+        "DEBUG delete_comment:",
+        "user_id=", user_id,
+        "comment_owner=", comment_owner,
+        "doc_owner=", doc_owner,
+        flush=True,
+    )
+
+    # Permisos:
+    # - autor del comentario, o
+    # - dueño del documento
+    # si comment_owner es None (comentarios antiguos), solo miramos dueño del doc
+    if comment_owner is not None and comment_owner != user_id and doc_owner != user_id:
+        return {"error": "Sin permisos para eliminar"}, 403
 
     db.session.delete(c)
     db.session.commit()
