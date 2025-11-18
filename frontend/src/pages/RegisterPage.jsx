@@ -49,28 +49,42 @@ export default function RegisterPage() {
           validationSchema={schema}
           onSubmit={async (values, { setSubmitting }) => {
             setApiError("");
+
+            /* 1️⃣ REGISTRO */
             try {
-              /* 1️⃣ Crear usuario */
               await api.post("/auth/register", {
                 nombre_usuario: values.name,
                 email: values.email,
                 password: values.password,
               });
-
-              /* 2️⃣ Auto-login (guarda token + contexto) */
-              await auth.login(values.email, values.password);
-
-              /* 3️⃣ Redirigir al dashboard */
-              navigate("/dashboard");
             } catch (err) {
+              // Error real de registro (409, 400, etc.)
               setApiError(
                 err.response?.data?.error ||
                   "No se pudo crear la cuenta. Intenta de nuevo."
               );
+              setSubmitting(false);
+              return;              // 👈 NO seguimos con el login si ni siquiera se creó
+            }
+
+            /* 2️⃣ LOGIN AUTOMÁTICO (opcional) */
+            try {
+              await auth.login(values.email, values.password);
+              navigate("/dashboard");
+            } catch (err) {
+              // La cuenta SÍ se creó (el /register dio 201),
+              // pero algo falló al hacer login
+              setApiError(
+                "La cuenta se creó correctamente, pero hubo un problema al iniciar sesión. " +
+                "Intenta entrar desde la pantalla de inicio de sesión."
+              );
+              // Si prefieres, puedes mandar directo al login:
+              // navigate("/");
             } finally {
               setSubmitting(false);
             }
           }}
+
         >
           {({ isSubmitting }) => (
             <Form className="auth-form">

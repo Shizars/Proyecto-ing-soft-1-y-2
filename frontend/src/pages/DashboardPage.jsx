@@ -530,12 +530,49 @@ export default function DashboardPage() {
   const handlePreview = async (doc) => {
     try {
       const { data } = await api.get(`/documents/${doc.id}/url`);
-      let url = data.url;
+
+      let url = data.url;          // lo que devuelve el backend
+      console.log("URL backend:", url);
+
+      // 1️⃣ Normalizar: si viene con localhost, lo cambiamos al host real
+      try {
+        const u = new URL(url);
+
+        // Si el backend devolvió http://localhost:5000/...
+        if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
+          // usamos el mismo host que ve el navegador (IP del servidor)
+          u.hostname = window.location.hostname;
+
+          // si no trae puerto, forzamos 5000
+          if (!u.port) {
+            u.port = "5000";
+          }
+
+          url = u.toString();
+        }
+      } catch (e) {
+        // Si data.url no era una URL absoluta (por si acaso)
+        if (typeof url === "string" && url.startsWith("/")) {
+          url = `${window.location.protocol}//${window.location.hostname}:5000${url}`;
+        }
+      }
+
+      // En este punto, para un PDF típico será algo como:
+      //   http://190.22.182.176:5000/uploads/mi_doc.pdf
+
+      // 2️⃣ Si NO es PDF, usamos Google Viewer con URL absoluta
       if (doc.formato !== "pdf") {
+        const absUrl = url.startsWith("http")
+          ? url
+          : `${window.location.protocol}//${window.location.host}${url}`;
+
         url = `https://docs.google.com/gview?url=${encodeURIComponent(
-          url
+          absUrl
         )}&embedded=true`;
       }
+
+      console.log("URL final preview:", url);
+
       setPreviewUrl(url);
       setSelectedDoc(doc);
       setPreviewOpen(true);
@@ -544,6 +581,7 @@ export default function DashboardPage() {
       alert("No se pudo cargar la vista previa.");
     }
   };
+
 
   /* ---------- compartir ---------- */
   const handleShare = async (doc) => {

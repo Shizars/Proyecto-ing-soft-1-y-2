@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
-import axios from "axios";
+//import axios from "axios";
+
+import api from "../services/api";
+
 
 const AuthContext = createContext();
 
@@ -48,16 +51,20 @@ export function AuthProvider({ children }) {
 
   /* ---------- login / logout ---------- */
   const login = async (email, password) => {
-    const res = await axios.post("http://localhost:5000/api/auth/login", {
+    const res = await api.post("/auth/login", {
       email,
       password,
     });
-    const { token, user } = res.data;
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    setUser(user);
+    const { token, access_token, user } = res.data;
+    const finalToken = token || access_token;
+
+    localStorage.setItem("token", finalToken);
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
+    }
     setIsAuthenticated(true);
-    scheduleLogout(token); // ⬅️ también al iniciar sesión
+    scheduleLogout(finalToken); // ⬅️ también al iniciar sesión
   };
 
   const logout = () => {

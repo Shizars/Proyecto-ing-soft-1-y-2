@@ -21,8 +21,13 @@ export default function ProgramResponsesWidget({ refreshMs = 15000 }) {
     try {
       const { data } = await rptRespPorProgramaV2();
       setItems(
-        [...data].sort((a, b) => (b.respuestas || 0) - (a.respuestas || 0))
+        Array.isArray(data)
+          ? [...data].sort((a, b) => (b.respuestas || 0) - (a.respuestas || 0))
+          : []
       );
+    } catch (err) {
+      console.error("Error cargando respuestas por programa:", err);
+      // 👆 NO hacemos throw err, solo lo registramos
     } finally {
       setLoading(false);
     }

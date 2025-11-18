@@ -24,6 +24,10 @@ export default function ProgramRankingWidget({ refreshMs = 15000 }) {
     try {
       const { data } = await rptRankingProgramasV2(useAvg); // devuelve [{ programa, puntaje, n }]
       setItems(Array.isArray(data) ? data : []);
+
+    } catch (err) {
+    console.error("Error cargando ranking programas:", err);
+    // aquí podrías dejar items como están, o vacíos, pero NO relanzamos el error
     } finally {
       setLoading(false);
     }
