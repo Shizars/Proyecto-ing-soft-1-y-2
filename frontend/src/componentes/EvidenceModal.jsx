@@ -75,11 +75,14 @@ export default function EvidenceModal({ isOpen, doc, onClose }) {
 
   // Construye URL pública hacia /uploads/... (el backend guarda file_path relativo)
   const buildUrl = (ev) => {
-    const rel = (ev.file_path || "").replace(/^\/?/, "");
+    const rel = (ev.file_path || "").replace(/^\/?/, ""); // "uploads/evidences/..."
+
+    const { protocol, hostname } = window.location;
     // mismo host donde corre el frontend; si tu backend está en otra URL en producción,
     // considera usar process.env.REACT_APP_API_BASE_URL para construir la URL pública.
     // Ej: `${process.env.REACT_APP_API_BASE_URL.replace(/\/api$/, "")}/${rel}`
-    return `${window.location.origin}/${rel}`;
+    const backendOrigin = `${protocol}//${hostname}:5000`;
+    return `${backendOrigin}/${rel}`;
   };
 
   if (!isOpen) return null;
