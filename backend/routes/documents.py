@@ -444,6 +444,42 @@ def list_evidences(doc_id: int):
     return {"items": evidences_schema.dump(rows)}, 200
 
 
+@docs_bp.delete("/<int:doc_id>/evidences/<int:evidence_id>")
+@jwt_required()
+def delete_evidence(doc_id: int, evidence_id: int):
+    """
+    Elimina una evidencia asociada a un documento.
+    Requiere que el documento pertenezca al usuario (ownership).
+    Borra el archivo físico si existe y el registro en BD.
+    """
+    user_id = get_jwt_identity()
+
+    # 1) validar documento y ownership
+    doc = _get_owned_doc_or_404(doc_id, user_id)
+    if not doc or doc.deleted_at is not None:
+        return {"error": "Documento no disponible"}, 404
+
+    # 2) buscar la evidencia y verificar que pertenezca al documento
+    ev = Evidence.query.get(evidence_id)
+    if not ev or ev.document_id != doc.id:
+        return {"error": "Evidencia no encontrada"}, 404
+
+    # 3) intentar borrar archivo físico de forma segura
+    try:
+        abs_path = (UPLOAD_DIR.parent / ev.file_path).resolve()
+        if UPLOAD_DIR.parent.resolve() in abs_path.parents and abs_path.exists():
+            abs_path.unlink(missing_ok=True)
+    except Exception as e:
+        # no fatal: loggea y continúa
+        print(f"[WARN] No se pudo borrar archivo de evidencia {abs_path}: {e}")
+
+    # 4) borrar registro en la base de datos
+    db.session.delete(ev)
+    db.session.commit()
+
+    return {"msg": "Evidencia eliminada correctamente", "id": evidence_id}, 200
+
+
 # ===================== PAPELERA (Soft Delete) =====================
 
 @docs_bp.patch("/<int:doc_id>/trash")
