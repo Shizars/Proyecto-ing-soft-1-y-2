@@ -1,3 +1,5 @@
+// frontend/src/services/api.js
+
 import axios from "axios";
 
 //api.js
@@ -63,8 +65,11 @@ export const renameDocument = (docId, newName) =>
 
 export const listEvidences = (docId) => {
   return api.get(`/documents/${docId}/evidences`);
-
 };
+
+// Eliminar evidencia (nuevo)
+export const deleteEvidence = (docId, evidenceId) =>
+  api.delete(`/documents/${docId}/evidences/${evidenceId}`);
 
 // Evidencias: listar y subir
 
@@ -114,4 +119,5 @@ export const updateProfile = (payload) =>
 
 
 export default api;
+
 

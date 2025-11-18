@@ -1,5 +1,12 @@
+// frontend/src/componentes/EvidenceModal.jsx
+
 import React, { useEffect, useState } from "react";
-import { fetchEvidences, uploadEvidence } from "../services/api";
+import {
+  fetchEvidences,
+  uploadEvidence,
+  deleteEvidence,
+} from "../services/api";
+import { toast } from "react-toastify";
 
 export default function EvidenceModal({ isOpen, doc, onClose }) {
   const [items, setItems] = useState([]);
@@ -36,19 +43,42 @@ export default function EvidenceModal({ isOpen, doc, onClose }) {
     try {
       await uploadEvidence(doc.id, file);
       await load(); // refresca lista
+      toast.success("Evidencia subida correctamente.");
     } catch (e2) {
       console.error(e2);
       setErr("No se pudo subir la evidencia.");
+      toast.error("No se pudo subir la evidencia.");
     } finally {
       setUploading(false);
       e.target.value = ""; // limpia input
     }
   };
 
+  const handleDeleteEvidence = async (evidenceId) => {
+    if (!doc) return;
+    const ok = window.confirm(
+      "¿Eliminar esta evidencia? Esta acción no se puede deshacer."
+    );
+    if (!ok) return;
+
+    try {
+      await deleteEvidence(doc.id, evidenceId);
+      setItems((prev) => prev.filter((ev) => ev.id !== evidenceId));
+      toast.success("Evidencia eliminada correctamente.");
+    } catch (err) {
+      console.error("Error eliminando evidencia:", err?.response || err);
+      const msg =
+        err?.response?.data?.error || "No se pudo eliminar la evidencia.";
+      toast.error(msg);
+    }
+  };
+
   // Construye URL pública hacia /uploads/... (el backend guarda file_path relativo)
   const buildUrl = (ev) => {
     const rel = (ev.file_path || "").replace(/^\/?/, "");
-    // mismo host donde corre el backend
+    // mismo host donde corre el frontend; si tu backend está en otra URL en producción,
+    // considera usar process.env.REACT_APP_API_BASE_URL para construir la URL pública.
+    // Ej: `${process.env.REACT_APP_API_BASE_URL.replace(/\/api$/, "")}/${rel}`
     return `${window.location.origin}/${rel}`;
   };
 
@@ -130,22 +160,40 @@ export default function EvidenceModal({ isOpen, doc, onClose }) {
                     {new Date(ev.uploaded_at).toLocaleString()}
                   </div>
                 </div>
-                <a
-                  href={buildUrl(ev)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="chip-toggle"
-                  style={{
-                    textDecoration: "none",
-                    padding: "6px 10px",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <i className="fas fa-download" />
-                  Abrir
-                </a>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <a
+                    href={buildUrl(ev)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="chip-toggle"
+                    style={{
+                      textDecoration: "none",
+                      padding: "6px 10px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <i className="fas fa-download" />
+                    Abrir
+                  </a>
+
+                  <button
+                    onClick={() => handleDeleteEvidence(ev.id)}
+                    title="Eliminar evidencia"
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      padding: 8,
+                    }}
+                  >
+                    <i
+                      className="fas fa-trash-alt"
+                      style={{ color: "#ef4444" }}
+                    />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
