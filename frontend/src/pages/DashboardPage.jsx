@@ -316,41 +316,53 @@ export default function DashboardPage() {
 
   // ✅ Descarga masiva (ZIP)
   const handleBulkDownload = async () => {
-    if (selectedIds.length === 0) {
-      alert("Selecciona al menos un documento.");
+    // ⬅️ usa aquí el mismo array que usabas antes con bulkDownload(...)
+    const ids = selectedIds; // ⚠️ PON AQUÍ TU NOMBRE REAL
+
+    if (!ids || ids.length === 0) {
+      alert("Selecciona al menos un documento para la descarga masiva.");
       return;
     }
-    if (selectedIds.length > 4) {
-      alert("Máximo 4 documentos por ZIP.");
-      return;
-    }
+
     try {
-      const res = await bulkDownload(selectedIds);
-      const blob = new Blob([res.data], { type: "application/zip" });
+      const token = localStorage.getItem("token");
+
+      const resp = await fetch("/api/documents/bulk-download", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ ids }),
+      });
+
+      if (!resp.ok) {
+        let msg = "No se pudo generar el ZIP.";
+        try {
+          const errJson = await resp.json();
+          if (errJson?.error) msg = errJson.error;
+        } catch (_) {}
+        alert(msg);
+        return;
+      }
+
+      const blob = await resp.blob();
       const url = window.URL.createObjectURL(blob);
+
       const a = document.createElement("a");
       a.href = url;
-      a.download = `documentos_${new Date()
-        .toISOString()
-        .slice(0, 19)
-        .replace(/[:T]/g, "-")}.zip`;
+      a.download = "documentos.zip";
       document.body.appendChild(a);
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-
-      const skipped = res.headers?.["x-skipped"];
-      if (skipped) toast.info(`Se excluyeron del ZIP: ${skipped}`);
-      clearSelection();
     } catch (err) {
-      const msg =
-        err?.response?.data?.error ||
-        (err?.response?.status === 413
-          ? "El tamaño total excede 100 MB."
-          : "No se pudo generar la descarga masiva.");
-      alert(msg);
+      console.error("bulk download error:", err);
+      alert("No se pudo descargar el ZIP. Inténtalo de nuevo.");
     }
   };
+
+
 
   /*------------Eliminar---------------*/
   const handleDelete = async (doc) => {
