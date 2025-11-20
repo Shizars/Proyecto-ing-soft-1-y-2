@@ -32,9 +32,7 @@ import EvidenceModal from "../componentes/EvidenceModal";
 import { listDocuments } from "../services/api";
 import { restoreDocument } from "../services/api";
 import { trashDocument } from "../services/api";
-import { bulkDownload } from "../services/api";
 import RemindersWidget from "../componentes/RemindersWidget";
-
 import AccountSettingsModal from "../componentes/AccountSettingsModal";
 
 export default function DashboardPage() {
@@ -55,7 +53,6 @@ export default function DashboardPage() {
 
   const [filterType, setFilterType] = useState("nombre");
   const [filterValue, setFilterValue] = useState("");
-  // estados:
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const [evidOpen, setEvidOpen] = useState(false);
@@ -152,10 +149,8 @@ export default function DashboardPage() {
     );
 
     try {
-      // 1) Actualizar en el backend (quitar carpeta / archived)
       await Promise.all(docsInFolder.map((d) => unarchiveDocument(d.id)));
 
-      // 2) Actualizar estado local inmediatamente (como si recargaras)
       setDocuments((prev) =>
         prev.map((d) =>
           d.folder_code === folderName
@@ -164,13 +159,11 @@ export default function DashboardPage() {
         )
       );
 
-      // 3) Limpiar filtros que pueden dejar la lista vacía
       setSelectedFolder((prev) => (prev === folderName ? null : prev));
-      setShowArchived(false); // por si estabas viendo "Archivados"
-      setShowDeleted(false); // opcional: vuelves a vista normal
-      clearSelection(); // quita selección de checkboxes
+      setShowArchived(false);
+      setShowDeleted(false);
+      clearSelection();
 
-      // 4) Refrescar contra el backend por seguridad (no es obligatorio, pero ayuda)
       await loadDocuments();
 
       toast.info(`Carpeta "${folderName}" eliminada.`);
@@ -316,8 +309,7 @@ export default function DashboardPage() {
 
   // ✅ Descarga masiva (ZIP)
   const handleBulkDownload = async () => {
-    // ⬅️ usa aquí el mismo array que usabas antes con bulkDownload(...)
-    const ids = selectedIds; // ⚠️ PON AQUÍ TU NOMBRE REAL
+    const ids = selectedIds;
 
     if (!ids || ids.length === 0) {
       alert("Selecciona al menos un documento para la descarga masiva.");
@@ -361,8 +353,6 @@ export default function DashboardPage() {
       alert("No se pudo descargar el ZIP. Inténtalo de nuevo.");
     }
   };
-
-
 
   /*------------Eliminar---------------*/
   const handleDelete = async (doc) => {
@@ -543,19 +533,14 @@ export default function DashboardPage() {
     try {
       const { data } = await api.get(`/documents/${doc.id}/url`);
 
-      let url = data.url;          // lo que devuelve el backend
+      let url = data.url;
       console.log("URL backend:", url);
 
-      // 1️⃣ Normalizar: si viene con localhost, lo cambiamos al host real
       try {
         const u = new URL(url);
 
-        // Si el backend devolvió http://localhost:5000/...
         if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
-          // usamos el mismo host que ve el navegador (IP del servidor)
           u.hostname = window.location.hostname;
-
-          // si no trae puerto, forzamos 5000
           if (!u.port) {
             u.port = "5000";
           }
@@ -563,16 +548,11 @@ export default function DashboardPage() {
           url = u.toString();
         }
       } catch (e) {
-        // Si data.url no era una URL absoluta (por si acaso)
         if (typeof url === "string" && url.startsWith("/")) {
           url = `${window.location.protocol}//${window.location.hostname}:5000${url}`;
         }
       }
 
-      // En este punto, para un PDF típico será algo como:
-      //   http://190.22.182.176:5000/uploads/mi_doc.pdf
-
-      // 2️⃣ Si NO es PDF, usamos Google Viewer con URL absoluta
       if (doc.formato !== "pdf") {
         const absUrl = url.startsWith("http")
           ? url
@@ -594,10 +574,7 @@ export default function DashboardPage() {
     }
   };
 
-
-
   async function copyToClipboard(text) {
-    // 1) Intentar con la API moderna (solo HTTPS / localhost)
     if (navigator.clipboard && window.isSecureContext) {
       try {
         await navigator.clipboard.writeText(text);
@@ -607,7 +584,6 @@ export default function DashboardPage() {
       }
     }
 
-    // 2) Fallback clásico con textarea + execCommand
     try {
       const textarea = document.createElement("textarea");
       textarea.value = text;
@@ -625,7 +601,6 @@ export default function DashboardPage() {
     }
   }
 
-
   /* ---------- compartir ---------- */
   const handleShare = async (doc) => {
     try {
@@ -637,7 +612,6 @@ export default function DashboardPage() {
         return;
       }
 
-      // Normalizar localhost -> IP real
       try {
         const u = new URL(url, window.location.origin);
 
@@ -655,13 +629,11 @@ export default function DashboardPage() {
         }
       }
 
-      // 👉 Intentar copiar (API moderna + fallback)
       const copied = await copyToClipboard(url);
 
       if (copied) {
         toast.success("Enlace copiado al portapapeles");
       } else {
-        // Si tampoco se pudo copiar, al menos mostramos el link
         toast.info(`Enlace listo para compartir:\n${url}`);
       }
     } catch (err) {
@@ -669,7 +641,6 @@ export default function DashboardPage() {
       toast.error("No se pudo generar el enlace");
     }
   };
-
 
   /* ---------- filtros ---------- */
   const sortedDocuments = [...documents].sort(
@@ -685,7 +656,6 @@ export default function DashboardPage() {
         d.titulo.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesFav = !onlyFavs || d.is_favorite === true;
 
-      // Si hay carpeta seleccionada, ignoramos el chip "Archivados/Activos"
       const matchesArchiveOrFolder = selectedFolder
         ? d.folder_code === selectedFolder
         : showArchived
@@ -876,50 +846,53 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <MonthlyUploadsKPI documents={documents} months={6} />
-        </div>
+        {/* ===== WIDGETS EN GRILLA ===== */}
+        <section className="widgets-section">
+          <div className="widgets-grid">
+            {/* Fila 1: KPI de subidas (full width) */}
+            <div className="widget widget--full">
+              <MonthlyUploadsKPI documents={documents} months={6} />
+            </div>
 
-        <CategoryPieChart documents={documents} />
+            {/* Fila 2: gráfico de categorías (full para darle aire) */}
+            <div className="widget widget--full">
+              <CategoryPieChart documents={documents} />
+            </div>
 
-        <div
-          className="widgets-row"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "16px",
-            alignItems: "stretch",
-            width: "100%",
-          }}
-        >
-          <div style={{ maxWidth: "none" }}>
-            <ProgramResponsesWidget refreshMs={3000} />
-          </div>
-          <div style={{ maxWidth: "none" }}>
-            <ProgramRankingWidget refreshMs={3000} />
-          </div>
-          <div>
-            <SatisfactionOverallWidget refreshMs={4000} threshold={4} />
-          </div>
-          <div>
-            <SatisfactionByProgramWidget
-              refreshMs={5000}
-              threshold={4}
-              minN={1}
-            />
-          </div>
-          <div style={{ maxWidth: "none" }}>
-            <ExistenciaWidget refreshMs={3000} />
-          </div>
+            {/* Fila 3: respuestas y ranking (dos columnas) */}
+            <div className="widget widget--half">
+              <ProgramResponsesWidget refreshMs={3000} />
+            </div>
+            <div className="widget widget--half">
+              <ProgramRankingWidget refreshMs={3000} />
+            </div>
 
-          {/* ✅ NUEVO: Reminders widget ocupa toda la fila, sin tocar lo demás */}
-          <div style={{ gridColumn: "1 / -1" }}>
-            <RemindersWidget />
+            {/* Fila 4: 3 tarjetitas iguales */}
+            <div className="widget">
+              <SatisfactionOverallWidget refreshMs={4000} threshold={4} />
+            </div>
+            <div className="widget">
+              <SatisfactionByProgramWidget
+                refreshMs={5000}
+                threshold={4}
+                minN={1}
+              />
+            </div>
+            <div className="widget">
+              <ExistenciaWidget refreshMs={3000} />
+            </div>
+
+            {/* Fila 5: recordatorios (full) */}
+            <div className="widget widget--full">
+              <RemindersWidget />
+            </div>
+
+            {/* Fila 6: logs de acceso (full) */}
+            <div className="widget widget--full">
+              <AccessLogsWidget />
+            </div>
           </div>
-        </div>
-        <div className="widgets-row" style={{ marginTop: 16 }}>
-          <AccessLogsWidget />
-        </div>
+        </section>
 
         {/* ---- sección documentos ---- */}
         <section className="files-section">
@@ -934,7 +907,7 @@ export default function DashboardPage() {
               />
             </div>
           </div>
-          <br />
+
           <button
             onClick={() => setOnlyFavs((v) => !v)}
             className={`chip-toggle ${onlyFavs ? "on" : ""}`}
@@ -958,7 +931,6 @@ export default function DashboardPage() {
             <i className="fas fa-trash-restore" /> Papelera
           </button>
 
-          {/* ✅ NUEVO: botón descarga masiva */}
           <button
             onClick={handleBulkDownload}
             className="chip-toggle"
@@ -1003,10 +975,9 @@ export default function DashboardPage() {
                 key={doc.id}
                 className={`doc-card ${
                   doc.id === lastUploadedId ? "highlight" : ""
-                }`}
+                } ${doc.deleted_at ? "deleted" : ""}`}
               >
                 <div className="doc-id">
-                  {/* ✅ checkbox de selección (deshabilitado si está en papelera) */}
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(doc.id)}
@@ -1021,6 +992,7 @@ export default function DashboardPage() {
                   />
                   #{doc.id}
                 </div>
+
                 <div className="doc-title truncado" title={doc.titulo}>
                   <strong>{doc.titulo}</strong>
                   {nameCounts[doc.titulo] > 1 && (
@@ -1043,25 +1015,7 @@ export default function DashboardPage() {
                 <div className="doc-tags">
                   <TagSelector doc={doc} refresh={loadDocuments} />
                 </div>
-                <button
-                  onClick={() => {
-                    const nuevo = prompt(
-                      "Nuevo nombre para el documento:",
-                      doc.titulo
-                    );
-                    if (nuevo && nuevo.trim() !== "") {
-                      renameDocument(doc.id, nuevo.trim())
-                        .then(() => loadDocuments())
-                        .catch((err) => {
-                          console.error("Rename error:", err?.response || err);
-                          alert("No se pudo renombrar el documento.");
-                        });
-                    }
-                  }}
-                  title="Renombrar documento"
-                >
-                  <i className="fas fa-edit" />
-                </button>
+
                 {/* === Acciones de documento === */}
                 <div className="doc-actions">
                   {/* Renombrar */}
@@ -1271,6 +1225,7 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+
           <SessionTimer onTimeout={logout} />
         </section>
       </main>
@@ -1290,6 +1245,7 @@ export default function DashboardPage() {
         onSave={setFilterCats}
         onClose={() => setCatOpen(false)}
       />
+
       <AccountSettingsModal
         isOpen={settingsOpen}
         onClose={() => setSettingsOpen(false)}
@@ -1311,6 +1267,7 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
       {satisfOpen && (
         <div className="modal-overlay" onClick={() => setSatisfOpen(false)}>
           <div className="modal modal-xl" onClick={(e) => e.stopPropagation()}>
@@ -1329,6 +1286,7 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
       <EvidenceModal isOpen={evidOpen} doc={evidDoc} onClose={closeEvidences} />
 
       {/* Modal subir documento */}
