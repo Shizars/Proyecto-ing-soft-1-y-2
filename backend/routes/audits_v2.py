@@ -1,3 +1,4 @@
+from sqlalchemy import text as sa_text
 from flask import Blueprint, request, jsonify, Response
 from backend.schemas.audit_v2_schema import AuditV2Schema, AuditV2ListQuerySchema
 # ⚠️ Import directo del módulo, no "from backend.services import ..."
@@ -59,15 +60,7 @@ def r_prt():
 
 @bp.get('/exports/audits.csv')
 def export_csv():
-    """
-    Exporta auditorías v2 en CSV.
-    Filtros opcionales:
-      - programa=PEE
-      - date_from=YYYY-MM-DD  (filtra por a.fecha_revision >=)
-      - date_to=YYYY-MM-DD    (filtra por a.fecha_revision <=)
-    """
     from datetime import date
-
     def _parse_date(s):
         if not s:
             return None
@@ -108,7 +101,10 @@ def export_csv():
         {where_sql}
         ORDER BY a.id DESC
     """
-    result = db.session.execute(sql, params)
+
+    # 👇 ESTA ES LA ÚNICA LÍNEA QUE ROMPE EL ARGUMENTERROR SI NO ESTÁ ASÍ
+    result = db.session.execute(sa_text(sql), params)
+
     cols = result.keys()
     rows = result.fetchall()
 
@@ -120,3 +116,4 @@ def export_csv():
                             or "\n" in str(v) or '"' in str(v)) else str(v))
                            for v in r) + "\n"
     return Response(_stream(), mimetype='text/csv')
+
